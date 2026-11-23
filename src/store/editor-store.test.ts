@@ -36,6 +36,21 @@ describe("editor store", () => {
     expect(ungrouped.map((node) => node.id)).toEqual(expect.arrayContaining([first.id, second.id]));
   });
 
+  it("edits and deletes a nested child node", () => {
+    useEditorStore.getState().addText();
+    const first = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addShape();
+    const second = useEditorStore.getState().project.pages[0]!.nodes[1]!;
+    useEditorStore.getState().selectNode(first.id);
+    useEditorStore.getState().selectNode(second.id, true);
+    useEditorStore.getState().groupSelected();
+    useEditorStore.getState().updateNodeText(first.id, "Nested text");
+    expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.children[0]!.text).toBe("Nested text");
+    useEditorStore.getState().selectNode(first.id);
+    useEditorStore.getState().deleteSelected();
+    expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.children).toHaveLength(1);
+  });
+
   it("updates page layout settings and supports undo", () => {
     useEditorStore.getState().commitHistory();
     useEditorStore.getState().updatePageLayout({ mode: "grid", columns: 4, gap: 24 });
