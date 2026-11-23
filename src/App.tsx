@@ -394,7 +394,7 @@ export default function App() {
         </a>
         <div className="project-name">{project.name}</div>
         <div className="topbar-actions">
-          <span className={storageError ? "save-state save-error" : "save-state"}><i /> {storageError ? "Storage issue" : "Auto-save enabled"}</span>
+          <span className={storageError ? "save-state save-error" : "save-state"}><i /> {storageError ? "Storage issue" : "Saved on this device"}</span>
           <button className="button" type="button" onClick={() => projectInputRef.current?.click()}>Import project</button>
           <button className="button button-primary" type="button" onClick={() => {
             const fileName = `${project.name.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-|-$/g, "") || "redro-project"}.redro.json`;
@@ -405,7 +405,7 @@ export default function App() {
             anchor.download = fileName;
             anchor.click();
             window.setTimeout(() => URL.revokeObjectURL(url), 1500);
-          }}>Export project</button>
+          }}>Backup project</button>
           <button className="button button-primary" type="button" onClick={() => {
             try {
               const html = exportWebsiteHtml(project);
@@ -426,17 +426,19 @@ export default function App() {
 
       {storageError && <div className="storage-warning" role="status">{storageError} · Changes may not be saved on this device.</div>}
       <div className="workspace">
-        <aside className="tool-rail" aria-label="Tools">
-          <button className="tool-button active" type="button" aria-label="Select tool">↖</button>
-          <button className="tool-button" type="button" onClick={addText} aria-label="Add text">T</button>
-          <button className="tool-button" type="button" onClick={addShape} aria-label="Add rectangle">▰</button>
-          <button className="tool-button" type="button" onClick={addContainer} aria-label="Add container">▣</button>
-          <button className="tool-button" type="button" onClick={() => { imageActionRef.current = "add"; replaceTargetRef.current = null; imageInputRef.current?.click(); }} aria-label="Insert image">▧</button>
+        <aside className="tool-rail" aria-label="Design tools">
+          <div className="rail-section-label">ADD ELEMENT</div>
+          <button className="tool-button active" type="button" aria-label="Select and move" title="Select and move"><span className="tool-symbol">↖</span><span className="tool-label">Select</span></button>
+          <button className="tool-button" type="button" onClick={addText} aria-label="Add text" title="Add a text element"><span className="tool-symbol">T</span><span className="tool-label">Text</span></button>
+          <button className="tool-button" type="button" onClick={addShape} aria-label="Add shape" title="Add a shape"><span className="tool-symbol">◇</span><span className="tool-label">Shape</span></button>
+          <button className="tool-button" type="button" onClick={addContainer} aria-label="Add section" title="Add a layout container"><span className="tool-symbol">▣</span><span className="tool-label">Section</span></button>
+          <button className="tool-button" type="button" onClick={() => { imageActionRef.current = "add"; replaceTargetRef.current = null; imageInputRef.current?.click(); }} aria-label="Add image" title="Add an image"><span className="tool-symbol">▧</span><span className="tool-label">Image</span></button>
           <div className="rail-divider" />
-          <button className="tool-button" type="button" onClick={undo} aria-label="Undo">↶</button>
-          <button className="tool-button" type="button" onClick={redo} aria-label="Redo">↷</button>
-          <button className="tool-button" type="button" onClick={duplicateSelected} aria-label="Duplicate">▢</button>
-          <button className="tool-button" type="button" onClick={deleteSelected} aria-label="Delete">⌫</button>
+          <div className="rail-section-label">EDIT</div>
+          <button className="tool-button" type="button" onClick={undo} aria-label="Undo" title="Undo (Ctrl+Z)"><span className="tool-symbol">↶</span><span className="tool-label">Undo</span></button>
+          <button className="tool-button" type="button" onClick={redo} aria-label="Redo" title="Redo (Ctrl+Y)"><span className="tool-symbol">↷</span><span className="tool-label">Redo</span></button>
+          <button className="tool-button" type="button" onClick={duplicateSelected} aria-label="Duplicate" title="Duplicate selected element"><span className="tool-symbol">▢</span><span className="tool-label">Duplicate</span></button>
+          <button className="tool-button" type="button" onClick={deleteSelected} aria-label="Delete" title="Delete selected element"><span className="tool-symbol">⌫</span><span className="tool-label">Delete</span></button>
         </aside>
 
         <section className="editor-area">
@@ -482,10 +484,17 @@ export default function App() {
             >
               {nodes.length === 0 ? (
                 <div className="canvas-empty">
-                  <div className="empty-symbol">✳</div>
-                  <h1>Your website starts here</h1>
-                  <p>Add an element and start designing visually.</p>
-                  <button className="button button-primary" type="button" onClick={addText}>＋ Add your first text</button>
+                  <div className="empty-symbol">R</div>
+                  <span className="empty-eyebrow">YOUR NEW WEBSITE</span>
+                  <h1>Let’s create your first page</h1>
+                  <p>Choose an element to add. You can move, resize and style everything on the canvas.</p>
+                  <div className="quick-start-grid">
+                    <button type="button" onClick={addText}><strong>T</strong><span>Add text</span><small>Headings and paragraphs</small></button>
+                    <button type="button" onClick={addShape}><strong>◇</strong><span>Add a shape</span><small>Decorative elements</small></button>
+                    <button type="button" onClick={() => { imageActionRef.current = "add"; replaceTargetRef.current = null; imageInputRef.current?.click(); }}><strong>▧</strong><span>Add an image</span><small>Use your own picture</small></button>
+                    <button type="button" onClick={addContainer}><strong>▣</strong><span>Add a section</span><small>Organize your layout</small></button>
+                  </div>
+                  <div className="empty-tip"><b>Quick tip</b> Select an element to edit it. Double-click text to edit it directly. Drag to move and use the corner handle to resize.</div>
                 </div>
               ) : nodes.filter((node) => node.visible).map((node) => <CanvasNode key={node.id} node={node} zoom={zoom} layoutMode={pageLayout.mode} />)}
             </div>
@@ -498,9 +507,9 @@ export default function App() {
         </section>
 
         <aside className="inspector">
-          <div className="panel-heading">Properties & Layers</div>
+          <div className="panel-heading"><span>Design panel</span><small>Properties · Layers · Assets</small></div>
           <div className="page-layout-panel">
-            <div className="layers-heading">Grouping <span>{selectedNodeIds.length} selected</span></div>
+            <div className="layers-heading">Arrange elements <span>{selectedNodeIds.length} selected</span></div>
             <div className="inspector-actions">
               <button type="button" disabled={selectedNodeIds.length < 2} onClick={groupSelected}>Group</button>
               <button type="button" disabled={selectedNode?.type !== "container"} onClick={ungroupSelected}>Ungroup</button>
@@ -509,7 +518,7 @@ export default function App() {
             </div>
           </div>
           <div className="page-layout-panel">
-            <div className="layers-heading">Page layout <span>Root</span></div>
+            <div className="layers-heading">Page layout <span>Whole page</span></div>
             <label><small>Layout mode</small><select value={pageLayout.mode} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ mode: event.target.value as "free" | "flex" | "grid" | "flow" })}><option value="free">Free positioning</option><option value="flex">Flexbox</option><option value="grid">CSS Grid</option><option value="flow">Flow</option></select></label>
             {pageLayout.mode !== "free" && <>
               <div className="property-grid">
@@ -633,7 +642,7 @@ export default function App() {
             </div>
           )}
           <div className="assets-panel">
-            <div className="layers-heading">Image assets <span>{imageAssets.length} total</span></div>
+            <div className="layers-heading">Images <span>{imageAssets.length} on this page</span></div>
             {imageAssets.length === 0 ? <p className="assets-empty">Images added to this page will appear here.</p> : imageAssets.map((asset) => (
               <div className={`asset-row${selectedNodeIds.includes(asset.id) ? " selected" : ""}`} key={asset.id}>
                 <button type="button" className="asset-select" onClick={() => useEditorStore.getState().selectNode(asset.id)}>
