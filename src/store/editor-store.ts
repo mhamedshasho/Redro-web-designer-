@@ -132,7 +132,6 @@ export const useEditorStore = create<EditorState>((set) => ({
     const ids = state.selectedNodeIds;
     if (!ids.length) return {};
     return {
-      ...pushHistory(state),
       project: updateFirstPage(state.project, (nodes) => nodes.map((node) => ids.includes(node.id) && !node.locked
         ? { ...node, layout: { ...node.layout, x: Math.round(node.layout.x / 8) * 8, y: Math.round(node.layout.y / 8) * 8 } }
         : node)),
