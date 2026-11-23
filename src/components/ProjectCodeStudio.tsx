@@ -50,7 +50,7 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
     window.addEventListener("message", (event) => {
       const data = event.data;
       if (!data || data.source !== "redro-parent-editor") return;
-      if (data.type === "mode") visualMode = Boolean(data.enabled);\n      if (data.type === "export") {\n        const copy = document.documentElement.cloneNode(true);\n        copy.querySelectorAll("[data-redro-file], #redro-visual-editor, [data-redro-editor-selected], [data-redro-editor-id]").forEach((node) => {\n          if (node.tagName === "SCRIPT" || node.tagName === "STYLE") node.remove();\n          else { node.removeAttribute("data-redro-editor-selected"); node.removeAttribute("data-redro-editor-id"); }\n        });\n        const original = new DOMParser().parseFromString(originalMarkup, "text/html");\n        original.querySelectorAll(\x27link[rel="stylesheet"]\x27).forEach((node) => copy.querySelector("head")?.appendChild(node.cloneNode(true)));\n        original.querySelectorAll("script[src]").forEach((node) => copy.querySelector("body")?.appendChild(node.cloneNode(true)));\n        send("export", "<!doctype html>\\n" + copy.outerHTML);\n      }
+      if (data.type === "mode") visualMode = Boolean(data.enabled);\n      if (data.type === "export") {\n        const copy = document.documentElement.cloneNode(true);\n        copy.querySelectorAll("[data-redro-file], #redro-visual-editor, #redro-editor-marker, [data-redro-editor-selected], [data-redro-editor-id]").forEach((node) => {\n          if (node.tagName === "SCRIPT" || node.tagName === "STYLE") node.remove();\n          else { node.removeAttribute("data-redro-editor-selected"); node.removeAttribute("data-redro-editor-id"); }\n        });\n        const original = new DOMParser().parseFromString(originalMarkup, "text/html");\n        original.querySelectorAll(\x27link[rel="stylesheet"]\x27).forEach((node) => copy.querySelector("head")?.appendChild(node.cloneNode(true)));\n        original.querySelectorAll("script[src]").forEach((node) => copy.querySelector("body")?.appendChild(node.cloneNode(true)));\n        send("export", "<!doctype html>\\n" + copy.outerHTML);\n      }
       if (data.type === "update" && selectedId) {
         const element = document.querySelector('[data-redro-editor-id="' + CSS.escape(selectedId) + '"]');
         if (!element) return;
@@ -60,7 +60,7 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
         describe(element);
       }
     });
-    const marker = document.createElement("style");
+    const marker = document.createElement("style");\n    marker.id = "redro-editor-marker";
     marker.textContent = '[data-redro-editor-selected="true"]{outline:2px solid #ef3340!important;outline-offset:3px!important;cursor:crosshair!important}';
     document.head.appendChild(marker);
   })();
