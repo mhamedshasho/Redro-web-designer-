@@ -535,17 +535,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       pages: state.project.pages.map((page, index) => index === 0
         ? {
             ...page,
-            layout: {
-              mode: "free",
-              direction: "row",
-              gap: 16,
-              padding: 24,
-              columns: 3,
-              justifyContent: "start",
-              alignItems: "start",
-              ...page.layout,
-              ...patch,
-            },
+            layout: { ...page.layout, ...patch },
           }
         : page),
     },
