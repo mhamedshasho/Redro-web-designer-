@@ -45,6 +45,9 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current?.committed && useEditorStore.getState().snapEnabled) {
+      useEditorStore.getState().snapSelectedToGrid();
+    }
     dragRef.current = null;
     delete (event.currentTarget as HTMLDivElement).dataset.dragIds;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
@@ -171,6 +174,10 @@ export default function App() {
   const storageError = useEditorStore((state) => state.storageError);
   const initialize = useEditorStore((state) => state.initialize);
   const zoom = useEditorStore((state) => state.zoom);
+  const snapEnabled = useEditorStore((state) => state.snapEnabled);
+  const setSnapEnabled = useEditorStore((state) => state.setSnapEnabled);
+  const snapSelectedToGrid = useEditorStore((state) => state.snapSelectedToGrid);
+  const alignSelected = useEditorStore((state) => state.alignSelected);
   const addText = useEditorStore((state) => state.addText);
   const addShape = useEditorStore((state) => state.addShape);
   const setZoom = useEditorStore((state) => state.setZoom);
@@ -234,6 +241,11 @@ export default function App() {
 
   return (
     <main className="app-shell">
+      <div className="desktop-warning">
+        <div className="desktop-warning-mark">R</div>
+        <h1>Redro Web Designer</h1>
+        <p>This editor is designed for desktop screens. Open it on a computer to continue designing.</p>
+      </div>
       <header className="topbar">
         <a className="brand" href="/" aria-label="Redro Web Designer home">
           <span className="brand-mark">R</span>
@@ -266,6 +278,15 @@ export default function App() {
               <button type="button" onClick={undo} aria-label="Undo">Undo</button>
               <button type="button" onClick={redo} aria-label="Redo">Redo</button>
               <span className="muted">{selectedNodeIds.length} selected</span>
+              <button className={snapEnabled ? "snap-toggle active" : "snap-toggle"} type="button" onClick={() => setSnapEnabled(!snapEnabled)}>Snap 8px {snapEnabled ? "On" : "Off"}</button>
+              <div className="align-controls">
+                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("left")} title="Align left">⇤</button>
+                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("center-x")} title="Align horizontal center">↔</button>
+                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("right")} title="Align right">⇥</button>
+                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("top")} title="Align top">⇡</button>
+                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("center-y")} title="Align vertical center">↕</button>
+                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("bottom")} title="Align bottom">⇣</button>
+              </div>
             </div>
             <div className="zoom-controls">
               <button type="button" onClick={() => setZoom(zoom - 0.1)} aria-label="Zoom out">−</button>
