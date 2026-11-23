@@ -334,7 +334,7 @@ export default function App() {
           imageActionRef.current = "add";
           replaceTargetRef.current = null;
         };
-        reader.onerror = () => window.alert("Unable to read this image file.");
+        reader.onerror = () => { imageActionRef.current = "add"; replaceTargetRef.current = null; window.alert("Unable to read this image file."); };
         reader.readAsDataURL(file);
       }} />
       <header className="topbar">
@@ -356,7 +356,7 @@ export default function App() {
           <button className="tool-button" type="button" onClick={addText} aria-label="Add text">T</button>
           <button className="tool-button" type="button" onClick={addShape} aria-label="Add rectangle">▰</button>
           <button className="tool-button" type="button" onClick={addContainer} aria-label="Add container">▣</button>
-          <button className="tool-button" type="button" onClick={() => imageInputRef.current?.click()} aria-label="Insert image">▧</button>
+          <button className="tool-button" type="button" onClick={() => { imageActionRef.current = "add"; replaceTargetRef.current = null; imageInputRef.current?.click(); }} aria-label="Insert image">▧</button>
           <div className="rail-divider" />
           <button className="tool-button" type="button" onClick={undo} aria-label="Undo">↶</button>
           <button className="tool-button" type="button" onClick={redo} aria-label="Redo">↷</button>
