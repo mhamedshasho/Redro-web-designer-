@@ -359,6 +359,6 @@ Every implementation milestone must pass:
 3. Unit and integration tests
 4. Production build
 5. Playwright smoke tests in Chrome and Firefox for user-facing flows
-6. Manual review of keyboard behavior, mobile viewport handling, and recovery paths where automation is insufficient
+6. Manual review of keyboard behavior, desktop viewport handling, and recovery paths where automation is insufficient
 
 No claim of passing a test may be made unless the test was actually run and its result recorded.
