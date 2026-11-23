@@ -24,6 +24,7 @@ interface EditorState {
   addShape: () => void;
   addContainer: () => void;
   groupSelected: () => void;
+  moveSelectedIntoContainer: (containerId: string) => void;
   ungroupSelected: () => void;
   selectNode: (id: string | null, additive?: boolean) => void;
   updateNodeText: (id: string, text: string) => void;
@@ -160,6 +161,31 @@ function appendToContainer(nodes: DocumentNode[], containerId: string, child: Do
   return { nodes: next, inserted };
 }
 
+function absoluteOrigin(nodes: DocumentNode[], id: string, parentX = 0, parentY = 0): { x: number; y: number } | undefined {
+  for (const node of nodes) {
+    const x = parentX + node.layout.x;
+    const y = parentY + node.layout.y;
+    if (node.id === id) return { x, y };
+    const nested = absoluteOrigin(node.children, id, x, y);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+function isDescendant(nodes: DocumentNode[], ancestorId: string, candidateId: string): boolean {
+  const ancestor = findNodeTree(nodes, ancestorId);
+  return Boolean(ancestor && findNodeTree(ancestor.children, candidateId));
+}
+
+function hasLockedAncestor(nodes: DocumentNode[], id: string, inheritedLocked = false): boolean {
+  for (const node of nodes) {
+    const locked = inheritedLocked || node.locked;
+    if (node.id === id) return locked;
+    if (hasLockedAncestor(node.children, id, locked)) return true;
+  }
+  return false;
+}
+
 function selectedContainer(state: EditorState): DocumentNode | undefined {
   if (state.selectedNodeIds.length !== 1) return undefined;
   const node = findNodeTree(currentNodes(state.project), state.selectedNodeIds[0]!);
@@ -242,6 +268,35 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...pushHistory(state),
       project: updateFirstPage(state.project, () => updated.nodes),
       selectedNodeIds: [node.id],
+    };
+  }),
+  moveSelectedIntoContainer: (containerId) => set((state) => {
+    const roots = currentNodes(state.project);
+    const target = findNodeTree(roots, containerId);
+    if (!target || target.type !== "container" || hasLockedAncestor(roots, containerId)) return {};
+    const selected = state.selectedNodeIds.filter((id) => id !== containerId);
+    if (!selected.length || selected.some((id) => !findNodeTree(roots, id) || isDescendant(roots, id, containerId) || hasLockedAncestor(roots, id))) return {};
+    const topLevelIds = selected.filter((id) => !selected.some((other) => other !== id && isDescendant(roots, other, id)));
+    const targetOrigin = absoluteOrigin(roots, containerId);
+    if (!targetOrigin) return {};
+    const moving = topLevelIds.map((id) => {
+      const node = findNodeTree(roots, id)!;
+      const origin = absoluteOrigin(roots, id)!;
+      return { ...node, layout: { ...node.layout, x: origin.x - targetOrigin.x, y: origin.y - targetOrigin.y } };
+    });
+    let nextNodes = removeNodeTree(roots, topLevelIds);
+    const inserted = appendToContainer(nextNodes, containerId, moving[0]!);
+    if (!inserted.inserted) return {};
+    nextNodes = inserted.nodes;
+    for (const node of moving.slice(1)) {
+      const result = appendToContainer(nextNodes, containerId, node);
+      if (!result.inserted) return {};
+      nextNodes = result.nodes;
+    }
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, () => nextNodes),
+      selectedNodeIds: topLevelIds,
     };
   }),
   groupSelected: () => set((state) => {
