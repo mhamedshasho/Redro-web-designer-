@@ -267,6 +267,13 @@ function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number
 
 export default function App() {
   const project = useEditorStore((state) => state.project);
+  const activePageId = useEditorStore((state) => state.activePageId);
+  const addPage = useEditorStore((state) => state.addPage);
+  const selectPage = useEditorStore((state) => state.selectPage);
+  const renamePage = useEditorStore((state) => state.renamePage);
+  const duplicatePage = useEditorStore((state) => state.duplicatePage);
+  const deletePage = useEditorStore((state) => state.deletePage);
+  const [showGuide, setShowGuide] = useState(false);
   const isReady = useEditorStore((state) => state.isReady);
   const storageError = useEditorStore((state) => state.storageError);
   const initialize = useEditorStore((state) => state.initialize);
@@ -296,8 +303,9 @@ export default function App() {
   const updateNodeLayout = useEditorStore((state) => state.updateNodeLayout);
   const updateNodeStyle = useEditorStore((state) => state.updateNodeStyle);
   const updatePageLayout = useEditorStore((state) => state.updatePageLayout);
-  const pageLayout = project.pages[0]!.layout;
-  const nodes = project.pages[0]?.nodes ?? [];
+  const activePage = project.pages.find((page) => page.id === activePageId) ?? project.pages[0]!;
+  const pageLayout = activePage.layout;
+  const nodes = activePage.nodes;
   const selectedNode = selectedNodeIds[0] ? findNodeById(nodes, selectedNodeIds[0]) : undefined;
   const selectedTargetContainer = selectedNodeIds.map((id) => findNodeById(nodes, id)).find((node) => node?.type === "container");
   const imageAssets = collectImageNodes(nodes);
@@ -395,7 +403,8 @@ export default function App() {
         <div className="project-name">{project.name}</div>
         <div className="topbar-actions">
           <span className={storageError ? "save-state save-error" : "save-state"}><i /> {storageError ? "Storage issue" : "Saved on this device"}</span>
-          <button className="button" type="button" onClick={() => projectInputRef.current?.click()}>Import project</button>
+          <button className="button" type="button" onClick={() => setShowGuide((value) => !value)}>Help / Guide</button>
+          <button className="button" type="button" onClick={() => projectInputRef.current?.click()}>Open project</button>
           <button className="button button-primary" type="button" onClick={() => {
             const fileName = `${project.name.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-|-$/g, "") || "redro-project"}.redro.json`;
             const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
@@ -443,7 +452,7 @@ export default function App() {
 
         <section className="editor-area">
           <div className="editor-toolbar">
-            <div className="page-label"><span className="page-dot" /> Home <span className="muted">/</span> Desktop</div>
+            <div className="page-label"><span className="page-dot" /> {activePage.name} <span className="muted">/</span> Desktop</div>
             <div className="history-controls">
               <button type="button" onClick={undo} aria-label="Undo">Undo</button>
               <button type="button" onClick={redo} aria-label="Redo">Redo</button>
@@ -465,6 +474,30 @@ export default function App() {
             </div>
           </div>
 
+          <div className="pages-bar">
+            <div className="pages-list" aria-label="Website pages">
+              {project.pages.map((page, index) => (
+                <button key={page.id} type="button" className={page.id === activePage.id ? "page-tab active" : "page-tab"} onClick={() => selectPage(page.id)}>
+                  <span className="page-tab-icon">▤</span>{page.name}<small>{index + 1}</small>
+                </button>
+              ))}
+            </div>
+            <div className="page-actions">
+              <button type="button" onClick={addPage} disabled={project.pages.length >= 30}>＋ New page</button>
+              <button type="button" onClick={() => { const name = window.prompt("Name this page", activePage.name); if (name !== null) renamePage(activePage.id, name); }}>Rename</button>
+              <button type="button" onClick={() => duplicatePage(activePage.id)} disabled={project.pages.length >= 30}>Duplicate</button>
+              <button type="button" className="danger" disabled={project.pages.length <= 1} onClick={() => { if (window.confirm("Delete the page “" + activePage.name + "”?")) deletePage(activePage.id); }}>Delete</button>
+            </div>
+          </div>
+          {showGuide && <section className="beginner-guide">
+            <div className="guide-heading"><div><span className="guide-kicker">REDRO QUICK START</span><h2>Your first website, step by step</h2></div><button type="button" onClick={() => setShowGuide(false)} aria-label="Close guide">×</button></div>
+            <div className="guide-steps">
+              <article><b>01</b><strong>Add content</strong><p>Choose Text, Shape, Section or Image from the left toolbar. New items appear on the page.</p></article>
+              <article><b>02</b><strong>Arrange and edit</strong><p>Click an item to select it. Drag it to move, use its handles to resize, then change its settings in the right panel.</p></article>
+              <article><b>03</b><strong>Build more pages</strong><p>Use New page above the canvas to add pages. Switch between them using the page tabs.</p></article>
+              <article><b>04</b><strong>Save and publish</strong><p>Your work saves on this device automatically. Use Backup project to keep a copy, or Export website to download your website HTML.</p></article>
+            </div>
+          </section>}
           <div className="canvas-stage">
             <div
               className="website-canvas"
@@ -501,7 +534,7 @@ export default function App() {
           </div>
 
           <footer className="bottom-bar">
-            <span>Page 1 of {project.pages.length}</span>
+            <span>Page {project.pages.findIndex((page) => page.id === activePage.id) + 1} of {project.pages.length}</span>
             <span>Canvas · {nodes.length} elements</span>
           </footer>
         </section>
