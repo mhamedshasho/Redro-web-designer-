@@ -563,3 +563,93 @@ button { cursor: pointer; }
   .project-studio-body { grid-template-columns: 110px minmax(0, 1fr); }
   .project-inspector { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* Mobile-first usability repair */
+@media (max-width: 900px) {
+  .desktop-warning { display: none !important; }
+  .topbar, .storage-warning { display: flex !important; }
+  .topbar {
+    height: auto;
+    min-height: 58px;
+    padding: 10px 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .brand { flex: 1 1 100%; }
+  .project-name { display: none; }
+  .topbar-actions {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .topbar-actions .save-state { flex: 1 0 100%; }
+  .topbar-actions .button {
+    flex: 1 1 calc(50% - 7px);
+    min-height: 40px;
+    white-space: normal;
+  }
+  .workspace {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: calc(100dvh - 58px);
+  }
+  .tool-rail {
+    order: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  .rail-section-label, .rail-divider { display: none; }
+  .tool-button {
+    flex: 0 0 64px;
+    min-width: 64px;
+    min-height: 54px;
+  }
+  .editor-area, .editor-main, .canvas-panel, .canvas-workspace {
+    min-width: 0;
+    width: 100%;
+  }
+  .editor-toolbar {
+    height: auto;
+    min-height: 48px;
+    padding: 8px;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  .history-controls { display: flex; }
+  .inspector { display: none !important; }
+  .canvas-stage {
+    min-height: 52vh;
+    overflow: auto;
+    padding: 18px 10px;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  .website-canvas {
+    transform-origin: top left;
+    max-width: none;
+  }
+  .pages-bar {
+    align-items: flex-start;
+    padding: 8px;
+  }
+  .pages-list { width: 100%; }
+  .page-actions { width: 100%; }
+  .page-actions button { flex: 1 1 auto; min-height: 38px; }
+  .beginner-guide { margin: 8px; padding: 12px; }
+  .guide-steps { grid-template-columns: 1fr 1fr; }
+  .quick-start-grid { grid-template-columns: 1fr 1fr; }
+  .bottom-bar { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .topbar-actions .button { flex: 1 1 100%; }
+  .guide-steps, .quick-start-grid { grid-template-columns: 1fr; }
+  .canvas-empty { padding: 22px 14px; }
+  .canvas-empty h1 { font-size: 21px; }
+}
