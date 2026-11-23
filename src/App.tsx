@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useEditorStore } from "./store/editor-store";
 import { saveProject } from "./storage/project-storage";
-import type { DocumentNode } from "./model/document";
+import type { DocumentNode, WebsiteProject } from "./model/document";
+
+function isWebsiteProject(value: unknown): value is WebsiteProject {
+  if (!value || typeof value !== "object") return false;
+  const project = value as Partial<WebsiteProject>;
+  return typeof project.id === "string"
+    && typeof project.name === "string"
+    && typeof project.schemaVersion === "number"
+    && Array.isArray(project.pages)
+    && project.pages.length > 0
+    && project.pages.every((page) => page && typeof page.id === "string" && Array.isArray(page.nodes));
+}
 
 function findNodeById(nodes: DocumentNode[], id: string): DocumentNode | undefined {
   for (const node of nodes) {
@@ -268,6 +279,8 @@ export default function App() {
   const addContainer = useEditorStore((state) => state.addContainer);
   const addImage = useEditorStore((state) => state.addImage);
   const replaceImage = useEditorStore((state) => state.replaceImage);
+  const importProject = useEditorStore((state) => state.importProject);
+  const projectInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const imageActionRef = useRef<"add" | "replace">("add");
   const replaceTargetRef = useRef<string | null>(null);
@@ -345,6 +358,20 @@ export default function App() {
         <h1>Redro Web Designer</h1>
         <p>This editor is designed for desktop screens. Open it on a computer to continue designing.</p>
       </div>
+      <input ref={projectInputRef} className="visually-hidden" type="file" accept=".json,application/json" onChange={async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+        if (file.size > 20 * 1024 * 1024) { window.alert("Project file must be 20 MB or smaller."); return; }
+        try {
+          const imported: unknown = JSON.parse(await file.text());
+          if (!isWebsiteProject(imported)) throw new Error("This file is not a valid Redro project.");
+          if (!window.confirm("Import this project and replace the project currently open? Export the current project first if you need a backup.")) return;
+          importProject(imported);
+        } catch (error) {
+          window.alert(error instanceof Error ? error.message : "Unable to import this project file.");
+        }
+      }} />
       <input ref={imageInputRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => {
         const file = event.target.files?.[0];
         event.target.value = "";
@@ -364,14 +391,24 @@ export default function App() {
         reader.readAsDataURL(file);
       }} />
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Redro Web Designer home">
+        <a className="brand" href="./" aria-label="Redro Web Designer home">
           <span className="brand-mark">R</span>
           <span>REDRO <strong>WEB DESIGNER</strong></span>
         </a>
         <div className="project-name">{project.name}</div>
         <div className="topbar-actions">
           <span className={storageError ? "save-state save-error" : "save-state"}><i /> {storageError ? "Storage issue" : "Auto-save enabled"}</span>
-          <button className="button button-primary" type="button" disabled>Export · Coming soon</button>
+          <button className="button" type="button" onClick={() => projectInputRef.current?.click()}>Import project</button>
+          <button className="button button-primary" type="button" onClick={() => {
+            const fileName = `${project.name.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-|-$/g, "") || "redro-project"}.redro.json`;
+            const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = fileName;
+            anchor.click();
+            URL.revokeObjectURL(url);
+          }}>Export project</button>
         </div>
       </header>
 
