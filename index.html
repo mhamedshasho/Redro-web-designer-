@@ -8,7 +8,53 @@
     <title>Redro Web Designer</title>
   </head>
   <body>
-    <div id="root"><main class="boot-fallback"><strong>REDRO <span>WEB DESIGNER</span></strong><p>Loading the visual editor…</p><small>If this message stays here, the editor script could not start. Reload the page or open the project on its deployed site.</small></main></div>
-    <script type="module" src="./src/main.tsx"></script>
+    <style>
+      .boot-fallback{min-height:100vh;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;background:#111114;color:#f4f4f5;text-align:center;font-family:Arial, sans-serif}
+      .boot-fallback strong{font-size:22px;letter-spacing:2px}
+      .boot-fallback strong span{color:#ef3340}
+      .boot-fallback p{margin:0;color:#c4c4cc;font-size:14px}
+      .boot-fallback small{max-width:620px;color:#92929d;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+      .boot-fallback .boot-error{width:min(720px,100%);box-sizing:border-box;padding:14px;border:1px solid #65333a;border-radius:8px;background:#21191d;color:#ffb7be;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+    </style>
+    <div id="root"><main class="boot-fallback"><strong>REDRO <span>WEB DESIGNER</span></strong><p>Loading the visual editor…</p><small>Preparing your workspace. If startup fails, the error will appear here.</small></main></div>
+    <script>
+      (() => {
+        const root = document.getElementById("root");
+        const showFailure = (title, detail) => {
+          if (!root || !root.querySelector(".boot-fallback")) return;
+          const panel = root.querySelector(".boot-fallback");
+          panel.innerHTML = "";
+          const brand = document.createElement("strong");
+          brand.innerHTML = 'REDRO <span>WEB DESIGNER</span>';
+          const heading = document.createElement("p");
+          heading.textContent = title;
+          const message = document.createElement("div");
+          message.className = "boot-error";
+          message.textContent = String(detail || "Unknown startup error");
+          const hint = document.createElement("small");
+          hint.textContent = "Send this error text to Redro support so the startup problem can be identified.";
+          panel.append(brand, heading, message, hint);
+        };
+        window.__redroBootFailure = (detail) => showFailure("The editor script could not be loaded.", detail);
+        window.addEventListener("error", (event) => {
+          const target = event.target;
+          if (target && target !== window && (target.tagName === "SCRIPT" || target.tagName === "LINK")) {
+            showFailure("A required application file could not be loaded.", target.src || target.href || target.tagName);
+          } else if (event.message) {
+            showFailure("The editor stopped during startup.", event.message + (event.filename ? "\\n" + event.filename + ":" + event.lineno : ""));
+          }
+        }, true);
+        window.addEventListener("unhandledrejection", (event) => {
+          const reason = event.reason;
+          showFailure("The editor encountered an asynchronous startup error.", reason && reason.message ? reason.message : String(reason));
+        });
+        window.setTimeout(() => {
+          if (root && root.querySelector(".boot-fallback")) {
+            showFailure("The editor did not finish starting.", "Startup exceeded 30 seconds. Check the browser console and network requests.");
+          }
+        }, 30000);
+      })();
+    </script>
+    <script type="module" src="./src/main.tsx" onerror="window.__redroBootFailure && window.__redroBootFailure('Failed to download ./src/main.tsx or one of its dependencies.')"></script>
   </body>
 </html>
