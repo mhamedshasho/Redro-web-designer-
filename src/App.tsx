@@ -12,20 +12,20 @@ function findNodeById(nodes: DocumentNode[], id: string): DocumentNode | undefin
   return undefined;
 }
 
-function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow" }) {
+function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow"; inheritedLocked?: boolean }) {
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const selectNode = useEditorStore((state) => state.selectNode);
   const updateNodeText = useEditorStore((state) => state.updateNodeText);
   const moveNodes = useEditorStore((state) => state.moveNodes);
   const resizeNode = useEditorStore((state) => state.resizeNode);
   const commitHistory = useEditorStore((state) => state.commitHistory);
-  const selected = selectedNodeIds.includes(node.id);
+  const selected = selectedNodeIds.includes(node.id);\n  const effectiveLocked = inheritedLocked || node.locked;
   const dragRef = useRef<{ x: number; y: number; committed: boolean } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   const rotateRef = useRef<{ centerX: number; centerY: number; startAngle: number; rotation: number } | null>(null);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (node.locked || event.button !== 0) return;
+    if (effectiveLocked || event.button !== 0) return;
     event.stopPropagation();
     const previousSelection = useEditorStore.getState().selectedNodeIds;
     if (event.shiftKey) {
@@ -65,7 +65,7 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
   const startResize = (event: PointerEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    if (node.locked) return;
+    if (effectiveLocked) return;
     selectNode(node.id);
     commitHistory();
     resizeRef.current = { x: event.clientX, y: event.clientY, width: node.layout.width, height: node.layout.height };
@@ -118,7 +118,7 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
 
   return (
     <div
-      className={`canvas-node${selected ? " is-selected" : ""}${node.locked ? " is-locked" : ""}`}
+      className={`canvas-node${selected ? " is-selected" : ""}${effectiveLocked ? " is-locked" : ""}`}
       style={{
         position: layoutMode === "free" ? "absolute" : "relative",
         left: layoutMode === "free" ? node.layout.x : undefined,
@@ -144,7 +144,7 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onDoubleClick={() => {
-        if (node.type !== "text" || node.locked) return;
+        if (node.type !== "text" || effectiveLocked) return;
         const nextText = window.prompt("Edit text", node.text);
         if (nextText !== null && nextText !== node.text) {
           commitHistory();
@@ -157,8 +157,8 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
       aria-pressed={selected}
     >
       {node.type !== "container" && <span className="node-content">{node.text}</span>}
-      {node.children.filter((child) => child.visible).map((child) => <CanvasNode key={child.id} node={child} zoom={zoom} layoutMode={node.layout.mode} />)}
-      {selected && !node.locked && (
+      {node.children.filter((child) => child.visible).map((child) => <CanvasNode key={child.id} node={child} zoom={zoom} layoutMode={node.layout.mode} inheritedLocked={effectiveLocked} />)}
+      {selected && !effectiveLocked && (
         <>
         <button
           className="rotate-handle"
