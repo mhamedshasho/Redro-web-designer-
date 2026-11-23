@@ -17,7 +17,9 @@ Redro Web Designer is a visual, no-code website authoring environment. Users cre
 
 ## Current status
 
-This repository is the clean starting point for the product. The first milestone is architecture and a tested editor foundation—not a mockup presented as a finished website builder.
+The repository now contains an early React/TypeScript editor foundation with local IndexedDB persistence, canvas element selection, pointer-based movement and resizing, direct rotation, multi-selection, layer visibility and locking, inspector controls, and keyboard undo/redo.
+
+This is still an early editor prototype. Responsive breakpoint layouts, grouping, alignment guides, image assets, reusable components, multi-page editing, and production website export are not implemented yet. Build and test commands are defined, but must be run in a local development environment before this prototype is treated as verified.
 
 See [Product and Engineering Architecture](docs/PRODUCT-ARCHITECTURE.md) for scope, system design, data model, milestones, and acceptance criteria.
 
@@ -30,4 +32,13 @@ See [Product and Engineering Architecture](docs/PRODUCT-ARCHITECTURE.md) for sco
 - Shared document renderer for preview and export
 - Vitest and Playwright for automated tests
 
-Exact library versions and implementation choices will be pinned when the application scaffold is introduced.
+Run the local checks with:
+
+```bash
+npm install
+npm run typecheck
+npm test
+npm run build
+```
+
+These checks have not yet been executed in the current development session.
