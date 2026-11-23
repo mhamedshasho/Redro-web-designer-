@@ -75,3 +75,9 @@ button { cursor: pointer; }
   .canvas-stage { padding: 24px 12px; justify-content: flex-start; }
   .website-canvas { width: 900px; }
 }
+
+.startup-screen { min-height: 100vh; display: grid; place-content: center; text-align: center; color: #f4f4f5; font-weight: 700; letter-spacing: 2px; }
+.startup-screen span { color: var(--red); }
+.startup-screen p { color: #92929d; font-size: 12px; font-weight: 400; letter-spacing: 0; }
+.save-error i { background: #f0a34a; }
+.storage-warning { padding: 9px 16px; color: #ffd39a; background: #392817; border-bottom: 1px solid #68451f; font-size: 11px; }
