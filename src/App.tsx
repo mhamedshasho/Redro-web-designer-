@@ -202,7 +202,7 @@ function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number
       <div className={selected ? "layer-row selected" : "layer-row"} style={{ paddingLeft: 4 + depth * 14 }}>
         <button className="layer-expand" type="button" aria-label={expanded ? "Collapse children" : "Expand children"} disabled={!hasChildren} onClick={() => setExpanded((value) => !value)}>{hasChildren ? (expanded ? "▾" : "▸") : "·"}</button>
         <button className="layer-select" type="button" onClick={(event) => selectNode(node.id, event.shiftKey)}>
-          <span>{node.type === "text" ? "T" : node.type === "container" ? "▣" : "◇"}</span>
+          <span>{node.type === "text" ? "T" : node.type === "container" ? "▣" : node.type === "image" ? "▧" : "◇"}</span>
           <span className="layer-name">{node.name}</span>
         </button>
         <button className="layer-action" type="button" aria-label={node.visible ? "Hide layer" : "Show layer"} onClick={() => toggleNodeVisibility(node.id)}>{node.visible ? "◉" : "○"}</button>
@@ -303,10 +303,11 @@ export default function App() {
         <h1>Redro Web Designer</h1>
         <p>This editor is designed for desktop screens. Open it on a computer to continue designing.</p>
       </div>
-      <input ref={imageInputRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" onChange={(event) => {
+      <input ref={imageInputRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={(event) => {
         const file = event.target.files?.[0];
         event.target.value = "";
         if (!file) return;
+        if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) { window.alert("Choose a PNG, JPEG, WebP, or GIF image."); return; }
         if (file.size > 8 * 1024 * 1024) { window.alert("Image must be 8 MB or smaller."); return; }
         const reader = new FileReader();
         reader.onload = () => { if (typeof reader.result === "string") addImage(reader.result, file.name.replace(/\.[^.]+$/, "")); };
