@@ -123,32 +123,41 @@ function pageStyles(page: PageDocument): string {
 }
 
 export function exportWebsiteHtml(project: WebsiteProject): string {
-  const page = project.pages[0];
-  if (!page) throw new Error("This project has no page to export.");
-  const title = escapeHtml(page.title || project.name || "Website");
-  const content = page.nodes.map((node) => renderNode(node, page.layout.mode)).join("");
+  if (!project.pages.length) throw new Error("This project has no page to export.");
+  const navigation = project.pages.map((page, index) => `<a href="#page-${index + 1}">${escapeHtml(page.name)}</a>`).join("");
+  const pages = project.pages.map((page, index) => {
+    const title = escapeHtml(page.title || page.name || project.name || "Website");
+    const content = page.nodes.map((node) => renderNode(node, page.layout.mode)).join("");
+    return `<section class="rd-page" id="page-${index + 1}" aria-label="${escapeHtml(page.name)}"><h1 class="rd-page-title">${title}</h1><div class="rd-page-content" style="${pageStyles(page)}">${content}</div></section>`;
+  }).join("");
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="${escapeHtml(project.name)}">
-<title>${title}</title>
+<title>${escapeHtml(project.name || "Website")}</title>
 <style>
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 html,body{margin:0;min-height:100%;font-family:system-ui,sans-serif}
 body{background:#f4f4f5;color:#18181b}
-.rd-page{position:relative;width:min(100%,900px);min-height:620px;margin:0 auto;background:#202027;color:#f5f5f7;overflow:hidden;${pageStyles(page)}}
+.rd-navigation{position:sticky;top:0;z-index:10;display:flex;gap:8px;flex-wrap:wrap;padding:12px 18px;background:#18181b}
+.rd-navigation a{padding:8px 12px;border-radius:6px;color:#fff;text-decoration:none;background:#30303a;font-size:13px}
+.rd-page{width:min(100%,900px);min-height:620px;margin:24px auto;background:#202027;color:#f5f5f7;overflow:hidden;box-shadow:0 12px 40px #0002}
+.rd-page-title{margin:0;padding:18px 24px;background:#292930;color:#fff;font-size:16px}
+.rd-page-content{position:relative;min-height:580px;overflow:hidden}
 .rd-node{box-sizing:border-box;min-width:0;min-height:0}
 .rd-text{white-space:pre-wrap;overflow-wrap:anywhere}
 .rd-image{display:block;max-width:100%}
 .rd-container{min-width:0}
 .rd-button{border:0;padding:10px 16px;border-radius:6px}
-@media(max-width:600px){.rd-page{width:100%;min-height:100vh}}
+@media(max-width:600px){.rd-page{width:100%;min-height:100vh;margin:0 auto 16px}.rd-page-content{min-height:100vh}}
 </style>
 </head>
 <body>
-<main class="rd-page">${content}</main>
+<nav class="rd-navigation" aria-label="Website pages">${navigation}</nav>
+${pages}
 </body>
 </html>`;
 }
