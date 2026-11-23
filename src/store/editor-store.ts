@@ -56,7 +56,7 @@ function pushHistory(state: EditorState): Partial<EditorState> {
   };
 }
 
-export const useEditorStore = create<EditorState>((set, get) => ({
+export const useEditorStore = create<EditorState>((set) => ({
   project: createProject(),
   selectedNodeIds: [],
   zoom: 1,
