@@ -16,6 +16,8 @@ export interface NodeLayout {
   justifyContent?: "start" | "center" | "end" | "space-between" | "space-around";
   alignItems?: "start" | "center" | "end" | "stretch";
   imageFit?: "contain" | "cover" | "fill";
+  imagePositionX?: number;
+  imagePositionY?: number;
 }
 
 export interface NodeStyle {
