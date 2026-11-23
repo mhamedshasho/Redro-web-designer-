@@ -164,7 +164,7 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
       aria-label={node.name}
       aria-pressed={selected}
     >
-      {node.type === "image" ? <img className="node-image" src={node.text} alt={node.name} draggable={false} style={{ objectFit: node.layout.imageFit ?? "contain", borderRadius: node.style.borderRadius }} /> : node.type !== "container" && <span className="node-content">{node.text}</span>}
+      {node.type === "image" ? <img className="node-image" src={node.text} alt={node.name} draggable={false} style={{ objectFit: node.layout.imageFit ?? "contain", objectPosition: `${node.layout.imagePositionX ?? 50}% ${node.layout.imagePositionY ?? 50}%`, borderRadius: node.style.borderRadius }} /> : node.type !== "container" && <span className="node-content">{node.text}</span>}
       {node.children.filter((child) => child.visible).map((child) => <CanvasNode key={child.id} node={child} zoom={zoom} layoutMode={node.layout.mode} inheritedLocked={effectiveLocked} />)}
       {selected && !effectiveLocked && (
         <>
@@ -454,7 +454,11 @@ export default function App() {
 
               {selectedNode.type === "image" ? <>
                 <span className="field-label">Image fit</span>
-                <select value={selectedNode.layout.imageFit ?? "contain"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { imageFit: event.target.value as "contain" | "cover" | "fill" })}><option value="contain">Contain</option><option value="cover">Cover</option><option value="fill">Stretch</option></select>
+                <select value={selectedNode.layout.imageFit ?? "contain"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { imageFit: event.target.value as "contain" | "cover" | "fill" })}><option value="contain">Contain</option><option value="cover">Cover / Crop</option><option value="fill">Stretch</option></select>
+                <span className="field-label">Crop position</span>
+                <label><small>Horizontal</small><input type="range" min="0" max="100" value={selectedNode.layout.imagePositionX ?? 50} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { imagePositionX: Number(event.target.value) })} /></label>
+                <label><small>Vertical</small><input type="range" min="0" max="100" value={selectedNode.layout.imagePositionY ?? 50} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { imagePositionY: Number(event.target.value) })} /></label>
+                <button type="button" className="inspector-reset" onClick={() => { useEditorStore.getState().commitHistory(); updateNodeLayout(selectedNode.id, { imagePositionX: 50, imagePositionY: 50 }); }}>Reset crop position</button>
               </> : <>
                 <span className="field-label">Content</span>
                 <textarea
