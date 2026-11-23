@@ -27,6 +27,10 @@ export interface NodeStyle {
   textAlign: "left" | "center" | "right";
   borderRadius: number;
   opacity: number;
+  fontStyle?: "normal" | "italic";
+  textDecoration?: "none" | "underline" | "line-through";
+  lineHeight?: number;
+  letterSpacing?: number;
 }
 
 export interface DocumentNode {
