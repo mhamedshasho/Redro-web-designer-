@@ -5,11 +5,15 @@ import {
   type DocumentNode,
   type WebsiteProject,
 } from "../model/document";
+import { listProjects, saveProject } from "../storage/project-storage";
 
 interface EditorState {
   project: WebsiteProject;
   selectedNodeId: string | null;
   zoom: number;
+  isReady: boolean;
+  storageError: string | null;
+  initialize: () => Promise<void>;
   addText: () => void;
   selectNode: (id: string | null) => void;
   updateNodeText: (id: string, text: string) => void;
@@ -24,9 +28,25 @@ export const useEditorStore = create<EditorState>((set) => ({
   project: createProject(),
   selectedNodeId: null,
   zoom: 1,
+  isReady: false,
+  storageError: null,
+  initialize: async () => {
+    try {
+      const projects = await listProjects();
+      const project = projects[0] ?? createProject();
+      if (projects.length === 0) await saveProject(project);
+      set({ project, isReady: true, storageError: null });
+    } catch (error) {
+      set({
+        isReady: true,
+        storageError: error instanceof Error ? error.message : "Local project storage is unavailable.",
+      });
+    }
+  },
   addText: () =>
     set((state) => {
-      const node = createTextNode(80 + currentNodes(state.project).length * 18, 80 + currentNodes(state.project).length * 18);
+      const count = currentNodes(state.project).length;
+      const node = createTextNode(80 + count * 18, 80 + count * 18);
       const pages = state.project.pages.map((page, index) =>
         index === 0 ? { ...page, nodes: [...page.nodes, node] } : page,
       );
