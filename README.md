@@ -17,9 +17,9 @@ Redro Web Designer is a visual, no-code website authoring environment. Users cre
 
 ## Current status
 
-The repository now contains an early React/TypeScript editor foundation with local IndexedDB persistence, canvas element selection, rectangle and text insertion, pointer-based movement and resizing, direct rotation, multi-selection, layer visibility and locking, typography/color/appearance controls, 8px snap grid, multi-element alignment, layer stacking controls, page-level Free/Flexbox/Grid/Flow layouts with gap/padding/alignment controls, inspector controls, and keyboard undo/redo. The editor is desktop-only.
+The repository now contains an early React/TypeScript editor foundation with local IndexedDB persistence, canvas element selection, rectangle and text insertion, pointer-based movement and resizing, direct rotation, multi-selection, layer visibility and locking, typography/color/appearance controls, 8px snap grid, multi-element alignment, layer stacking controls, page-level Free/Flexbox/Grid/Flow layouts with gap/padding/alignment controls, basic container creation/grouping/ungrouping with nested child rendering, inspector controls, and keyboard undo/redo. The editor is desktop-only.
 
-This is still an early editor prototype. Responsive breakpoint layouts, nested container grouping, image assets, reusable components, multi-page editing, and production website export are not implemented yet. Build and test commands are defined, but must be run in a local development environment before this prototype is treated as verified.
+This is still an early editor prototype. Responsive breakpoint layouts, arbitrary-depth container nesting, image assets, reusable components, multi-page editing, and production website export are not implemented yet. Build and test commands are defined, but must be run in a local development environment before this prototype is treated as verified.
 
 See [Product and Engineering Architecture](docs/PRODUCT-ARCHITECTURE.md) for scope, system design, data model, milestones, and acceptance criteria.
 
