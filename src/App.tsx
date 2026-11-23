@@ -129,6 +129,11 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
         color: node.style.color,
         fontSize: node.style.fontSize,
         fontWeight: node.style.fontWeight,
+        fontFamily: node.style.fontFamily,
+        fontStyle: node.style.fontStyle ?? "normal",
+        textDecoration: node.style.textDecoration ?? "none",
+        lineHeight: node.style.lineHeight ?? 1.2,
+        letterSpacing: node.style.letterSpacing ?? 0,
         textAlign: node.style.textAlign,
         opacity: node.style.opacity,
         background: node.style.backgroundColor,
@@ -468,6 +473,29 @@ export default function App() {
               </div>
               <span className="field-label">Rotation</span>
               <input className="rotation-input" type="number" value={selectedNode.layout.rotation} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { rotation: Number(event.target.value) })} />
+              {selectedNode.type === "text" && <>
+                <span className="field-label">Typography</span>
+                <label><small>Font family</small><select value={selectedNode.style.fontFamily} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { fontFamily: event.target.value })}>
+                  <option value="Inter, sans-serif">Inter</option>
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="Helvetica, sans-serif">Helvetica</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="'Times New Roman', serif">Times New Roman</option>
+                  <option value="'Courier New', monospace">Courier New</option>
+                  <option value="Verdana, sans-serif">Verdana</option>
+                  <option value="Tahoma, sans-serif">Tahoma</option>
+                  <option value="system-ui, sans-serif">System UI</option>
+                </select></label>
+                <div className="property-grid">
+                  <label><small>Weight</small><select value={selectedNode.style.fontWeight} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { fontWeight: Number(event.target.value) })}><option value="300">Light</option><option value="400">Regular</option><option value="500">Medium</option><option value="600">Semi bold</option><option value="700">Bold</option><option value="800">Extra bold</option><option value="900">Black</option></select></label>
+                  <label><small>Style</small><select value={selectedNode.style.fontStyle ?? "normal"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { fontStyle: event.target.value as "normal" | "italic" })}><option value="normal">Normal</option><option value="italic">Italic</option></select></label>
+                </div>
+                <div className="property-grid">
+                  <label><small>Decoration</small><select value={selectedNode.style.textDecoration ?? "none"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { textDecoration: event.target.value as "none" | "underline" | "line-through" })}><option value="none">None</option><option value="underline">Underline</option><option value="line-through">Strike through</option></select></label>
+                  <label><small>Line height</small><input type="number" min="0.8" max="3" step="0.1" value={selectedNode.style.lineHeight ?? 1.2} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { lineHeight: Math.max(0.8, Math.min(3, Number(event.target.value))) })} /></label>
+                </div>
+                <label><small>Letter spacing</small><input type="number" min="-5" max="30" step="0.5" value={selectedNode.style.letterSpacing ?? 0} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { letterSpacing: Math.max(-5, Math.min(30, Number(event.target.value))) })} /></label>
+              </>}
               <span className="field-label">Appearance</span>
               <div className="style-grid">
                 <label><small>Text color</small><input type="color" value={selectedNode.style.color} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { color: event.target.value })} /></label>
