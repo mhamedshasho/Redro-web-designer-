@@ -30,6 +30,21 @@ const shapeClipPaths: Record<NonNullable<DocumentNode["layout"]["shapeKind"]>, s
   arrow: "polygon(0% 35%, 68% 35%, 68% 5%, 100% 50%, 68% 95%, 68% 65%, 0% 65%)",
 };
 
+function getNodeLabel(node: DocumentNode): string {
+  if (node.type !== "shape") return node.name;
+  const labels: Record<NonNullable<DocumentNode["layout"]["shapeKind"]>, string> = {
+    rectangle: "Rectangle",
+    ellipse: "Ellipse",
+    triangle: "Triangle",
+    diamond: "Diamond",
+    pentagon: "Pentagon",
+    star: "Star",
+    line: "Line",
+    arrow: "Arrow",
+  };
+  return labels[node.layout.shapeKind ?? "rectangle"];
+}
+
 function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow"; inheritedLocked?: boolean }) {
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const selectNode = useEditorStore((state) => state.selectNode);
@@ -179,7 +194,7 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
       }}
       role="button"
       tabIndex={0}
-      aria-label={node.name}
+      aria-label={getNodeLabel(node)}
       aria-pressed={selected}
     >
       {node.type === "shape" ? <div className="shape-visual" style={{ background: node.style.backgroundColor, borderRadius: node.layout.shapeKind === "ellipse" ? "50%" : node.style.borderRadius, clipPath: shapeClipPaths[node.layout.shapeKind ?? "rectangle"] }} /> : node.type === "image" ? <img className="node-image" src={node.text} alt={node.name} draggable={false} style={{ objectFit: node.layout.imageFit ?? "contain", objectPosition: `${node.layout.imagePositionX ?? 50}% ${node.layout.imagePositionY ?? 50}%`, borderRadius: node.style.borderRadius }} /> : node.type !== "container" && <span className="node-content">{node.text}</span>}
@@ -226,7 +241,7 @@ function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number
         <button className="layer-expand" type="button" aria-label={expanded ? "Collapse children" : "Expand children"} disabled={!hasChildren} onClick={() => setExpanded((value) => !value)}>{hasChildren ? (expanded ? "▾" : "▸") : "·"}</button>
         <button className="layer-select" type="button" onClick={(event) => selectNode(node.id, event.shiftKey)}>
           <span>{node.type === "text" ? "T" : node.type === "container" ? "▣" : node.type === "image" ? "▧" : "◇"}</span>
-          <span className="layer-name">{node.name}</span>
+          <span className="layer-name">{getNodeLabel(node)}</span>
         </button>
         <button className="layer-action" type="button" aria-label={node.visible ? "Hide layer" : "Show layer"} onClick={() => toggleNodeVisibility(node.id)}>{node.visible ? "◉" : "○"}</button>
         <button className={node.locked ? "layer-action locked" : "layer-action"} type="button" aria-label={node.locked ? "Unlock layer" : "Lock layer"} onClick={() => toggleNodeLock(node.id)}>{node.locked ? "▣" : "▢"}</button>
