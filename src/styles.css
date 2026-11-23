@@ -112,3 +112,6 @@ button { cursor: pointer; }
 .style-grid input[type="color"] { height: 30px; padding: 2px; }
 .style-grid input[type="range"] { accent-color: var(--red); padding: 0; }
 .style-grid select { font-size: 11px; }
+
+.rotate-handle { position: absolute; top: -23px; left: calc(50% - 6px); width: 12px; height: 12px; padding: 0; border: 2px solid #fff; border-radius: 50%; background: var(--red); cursor: grab; touch-action: none; }
+.rotate-handle::after { content: ""; position: absolute; width: 1px; height: 12px; background: var(--red); left: 3px; top: 9px; }
