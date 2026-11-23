@@ -216,4 +216,25 @@ describe("editor store", () => {
     expect(group.children[1]!.id).toBe(first.id);
     expect(group.children[0]!.id).toBe(second.id);
   });
+  it("does not insert elements into a nested container under a locked ancestor", () => {
+    useEditorStore.getState().addContainer();
+    const outer = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addContainer();
+    const inner = useEditorStore.getState().project.pages[0]!.nodes[0]!.children[0]!;
+    useEditorStore.setState((state) => ({
+      project: {
+        ...state.project,
+        pages: state.project.pages.map((page) => ({
+          ...page,
+          nodes: page.nodes.map((node) => node.id === outer.id ? { ...node, locked: true } : node),
+        })),
+      },
+    }));
+    useEditorStore.getState().selectNode(inner.id);
+    useEditorStore.getState().addText();
+    const updatedOuter = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    expect(updatedOuter.children[0]!.children).toHaveLength(0);
+    expect(updatedOuter.children).toHaveLength(1);
+  });
+
 });
