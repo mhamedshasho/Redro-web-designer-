@@ -3,7 +3,7 @@ import { useEditorStore } from "./store/editor-store";
 import { saveProject } from "./storage/project-storage";
 import type { DocumentNode } from "./model/document";
 
-function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
+function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow" }) {
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const selectNode = useEditorStore((state) => state.selectNode);
   const updateNodeText = useEditorStore((state) => state.updateNodeText);
@@ -111,8 +111,9 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     <div
       className={`canvas-node${selected ? " is-selected" : ""}${node.locked ? " is-locked" : ""}`}
       style={{
-        left: node.layout.x,
-        top: node.layout.y,
+        position: layoutMode === "free" ? "absolute" : "relative",
+        left: layoutMode === "free" ? node.layout.x : undefined,
+        top: layoutMode === "free" ? node.layout.y : undefined,
         width: node.layout.width,
         height: node.layout.height,
         color: node.style.color,
@@ -191,6 +192,8 @@ export default function App() {
   const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
   const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
   const moveLayer = useEditorStore((state) => state.moveLayer);
+  const updatePageLayout = useEditorStore((state) => state.updatePageLayout);
+  const pageLayout = { mode: "free" as const, direction: "row" as const, gap: 16, padding: 24, columns: 3, justifyContent: "start" as const, alignItems: "start" as const, ...project.pages[0]?.layout };
   const nodes = project.pages[0]?.nodes ?? [];
   const selectedNode = nodes.find((node) => node.id === selectedNodeIds[0]);
 
