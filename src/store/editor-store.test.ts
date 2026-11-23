@@ -16,6 +16,26 @@ describe("editor store", () => {
     });
   });
 
+  it("groups selected elements into a nested container and ungroups them", () => {
+    useEditorStore.getState().addText();
+    const first = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addShape();
+    const second = useEditorStore.getState().project.pages[0]!.nodes[1]!;
+    useEditorStore.getState().selectNode(first.id);
+    useEditorStore.getState().selectNode(second.id, true);
+    useEditorStore.getState().groupSelected();
+
+    const grouped = useEditorStore.getState().project.pages[0]!.nodes;
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0]!.type).toBe("container");
+    expect(grouped[0]!.children).toHaveLength(2);
+
+    useEditorStore.getState().ungroupSelected();
+    const ungrouped = useEditorStore.getState().project.pages[0]!.nodes;
+    expect(ungrouped).toHaveLength(2);
+    expect(ungrouped.map((node) => node.id)).toEqual(expect.arrayContaining([first.id, second.id]));
+  });
+
   it("updates page layout settings and supports undo", () => {
     useEditorStore.getState().commitHistory();
     useEditorStore.getState().updatePageLayout({ mode: "grid", columns: 4, gap: 24 });
