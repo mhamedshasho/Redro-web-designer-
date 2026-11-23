@@ -8,7 +8,7 @@ function escapeRegExp(value: string): string {
 }
 
 function buildPreview(files: ProjectFile[], htmlPath: string): string {
-  let html = files.find((file) => file.path === htmlPath)?.content ?? "";
+  let html = files.find((file) => file.path === htmlPath)?.content ?? "";\n  const originalMarkup = html;
   const styles = files.filter((file) => file.kind === "css");
   const scripts = files.filter((file) => file.kind === "js");
   for (const file of styles) {
@@ -48,7 +48,7 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
     window.addEventListener("message", (event) => {
       const data = event.data;
       if (!data || data.source !== "redro-parent-editor") return;
-      if (data.type === "mode") visualMode = Boolean(data.enabled);
+      if (data.type === "mode") visualMode = Boolean(data.enabled);\n      if (data.type === "export") {\n        const copy = document.documentElement.cloneNode(true);\n        copy.querySelectorAll("[data-redro-file], #redro-visual-editor, [data-redro-editor-selected], [data-redro-editor-id]").forEach((node) => {\n          if (node.tagName === "SCRIPT" || node.tagName === "STYLE") node.remove();\n          else { node.removeAttribute("data-redro-editor-selected"); node.removeAttribute("data-redro-editor-id"); }\n        });\n        const original = new DOMParser().parseFromString(originalMarkup, "text/html");\n        original.querySelectorAll(\x27link[rel="stylesheet"]\x27).forEach((node) => copy.querySelector("head")?.appendChild(node.cloneNode(true)));\n        original.querySelectorAll("script[src]").forEach((node) => copy.querySelector("body")?.appendChild(node.cloneNode(true)));\n        send("export", "<!doctype html>\\n" + copy.outerHTML);\n      }
       if (data.type === "update" && selectedId) {
         const element = document.querySelector('[data-redro-editor-id="' + CSS.escape(selectedId) + '"]');
         if (!element) return;
@@ -83,7 +83,7 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.source !== iframeRef.current?.contentWindow || event.data?.source !== "redro-project-editor") return;
-      if (event.data.type === "select") setSelected(event.data.payload as SelectedElement);
+      if (event.data.type === "select") setSelected(event.data.payload as SelectedElement);\n      if (event.data.type === "export") {\n        setFiles((current) => current.map((file) => file.path === htmlPath ? { ...file, content: event.data.payload as string } : file));\n        window.alert("Visual changes applied to the HTML source. Download the updated HTML file to save it.");\n      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -157,7 +157,7 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
             <label>Width<input value={selected.width} onChange={(event) => { setSelected({ ...selected, width: event.target.value }); updateElement("width", event.target.value); }} /></label>
             <label>Height<input value={selected.height} onChange={(event) => { setSelected({ ...selected, height: event.target.value }); updateElement("height", event.target.value); }} /></label>
           </> : <p>Click any visible element in the page to select it and edit its text, colors, size and dimensions.</p>}
-          <small>Visual changes are preview edits. Use Code Editor to review and save source changes.</small>
+          <button type="button" onClick={() => iframeRef.current?.contentWindow?.postMessage({ source: "redro-parent-editor", type: "export" }, "*")}>Apply visual edits to HTML</button>\n          <small>Apply visual edits to write them into the HTML source, then download the updated file.</small>
         </aside>}
       </div>
       <footer className="project-studio-footer">
