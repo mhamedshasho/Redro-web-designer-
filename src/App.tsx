@@ -172,6 +172,7 @@ export default function App() {
   const initialize = useEditorStore((state) => state.initialize);
   const zoom = useEditorStore((state) => state.zoom);
   const addText = useEditorStore((state) => state.addText);
+  const addShape = useEditorStore((state) => state.addShape);
   const setZoom = useEditorStore((state) => state.setZoom);
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const undo = useEditorStore((state) => state.undo);
@@ -250,7 +251,7 @@ export default function App() {
         <aside className="tool-rail" aria-label="Tools">
           <button className="tool-button active" type="button" aria-label="Select tool">↖</button>
           <button className="tool-button" type="button" onClick={addText} aria-label="Add text">T</button>
-          <button className="tool-button" type="button" onClick={addText} aria-label="Add text element">＋</button>
+          <button className="tool-button" type="button" onClick={addShape} aria-label="Add rectangle">▰</button>
           <div className="rail-divider" />
           <button className="tool-button" type="button" onClick={undo} aria-label="Undo">↶</button>
           <button className="tool-button" type="button" onClick={redo} aria-label="Redo">↷</button>
