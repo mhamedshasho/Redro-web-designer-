@@ -242,7 +242,6 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   updatePageLayout: (patch) => set((state) => ({
-    ...pushHistory(state),
     project: {
       ...state.project,
       updatedAt: new Date().toISOString(),
