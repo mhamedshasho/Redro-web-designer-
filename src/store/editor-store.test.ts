@@ -48,6 +48,32 @@ describe("editor store", () => {
     expect(useEditorStore.getState().project.pages[0]?.nodes).toHaveLength(1);
   });
 
+  it("updates visual styles and restores them with undo", () => {
+    useEditorStore.getState().addText();
+    const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().commitHistory();
+    useEditorStore.getState().updateNodeStyle(node.id, { color: "#ff3344", fontSize: 42 });
+    const changed = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    expect(changed.style.color).toBe("#ff3344");
+    expect(changed.style.fontSize).toBe(42);
+
+    useEditorStore.getState().undo();
+    const restored = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    expect(restored.style.color).toBe(node.style.color);
+    expect(restored.style.fontSize).toBe(node.style.fontSize);
+  });
+
+  it("toggles layer visibility and lock state", () => {
+    useEditorStore.getState().addText();
+    const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().toggleNodeVisibility(node.id);
+    expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.visible).toBe(false);
+    useEditorStore.getState().toggleNodeLock(node.id);
+    expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.locked).toBe(true);
+    useEditorStore.getState().undo();
+    expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.locked).toBe(false);
+  });
+
   it("does not move locked elements", () => {
     useEditorStore.getState().addText();
     const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
