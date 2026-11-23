@@ -13,6 +13,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
   const selected = selectedNodeIds.includes(node.id);
   const dragRef = useRef<{ x: number; y: number; committed: boolean } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
+  const rotateRef = useRef<{ centerX: number; centerY: number; startAngle: number; rotation: number } | null>(null);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (node.locked || event.button !== 0) return;
@@ -73,6 +74,36 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
+  const startRotate = (event: PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (node.locked) return;
+    selectNode(node.id);
+    commitHistory();
+    const rect = event.currentTarget.parentElement!.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    rotateRef.current = {
+      centerX,
+      centerY,
+      startAngle: Math.atan2(event.clientY - centerY, event.clientX - centerX) * 180 / Math.PI,
+      rotation: node.layout.rotation,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const moveRotate = (event: PointerEvent<HTMLButtonElement>) => {
+    if (!rotateRef.current) return;
+    const angle = Math.atan2(event.clientY - rotateRef.current.centerY, event.clientX - rotateRef.current.centerX) * 180 / Math.PI;
+    const rotation = rotateRef.current.rotation + angle - rotateRef.current.startAngle;
+    useEditorStore.getState().updateNodeLayout(node.id, { rotation: Math.round(rotation) });
+  };
+
+  const finishRotate = (event: PointerEvent<HTMLButtonElement>) => {
+    rotateRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  };
+
   return (
     <div
       className={`canvas-node${selected ? " is-selected" : ""}${node.locked ? " is-locked" : ""}`}
@@ -109,6 +140,16 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     >
       <span className="node-content">{node.text}</span>
       {selected && !node.locked && (
+        <>
+        <button
+          className="rotate-handle"
+          type="button"
+          aria-label="Rotate element"
+          onPointerDown={startRotate}
+          onPointerMove={moveRotate}
+          onPointerUp={finishRotate}
+          onPointerCancel={finishRotate}
+        />
         <button
           className="resize-handle"
           type="button"
@@ -118,6 +159,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
           onPointerUp={finishResize}
           onPointerCancel={finishResize}
         />
+        </>
       )}
     </div>
   );
