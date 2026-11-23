@@ -5,6 +5,7 @@ import {
   createShapeNode,
   type DocumentNode,
   type WebsiteProject,
+  type PageLayout,
 } from "../model/document";
 import { listProjects, saveProject } from "../storage/project-storage";
 
@@ -38,6 +39,7 @@ interface EditorState {
   commitHistory: () => void;
   undo: () => void;
   redo: () => void;
+  updatePageLayout: (patch: Partial<PageLayout>) => void;
   setZoom: (zoom: number) => void;
 }
 
@@ -239,5 +241,28 @@ export const useEditorStore = create<EditorState>((set) => ({
       selectedNodeIds: [],
     };
   }),
+  updatePageLayout: (patch) => set((state) => ({
+    ...pushHistory(state),
+    project: {
+      ...state.project,
+      updatedAt: new Date().toISOString(),
+      pages: state.project.pages.map((page, index) => index === 0
+        ? {
+            ...page,
+            layout: {
+              mode: "free",
+              direction: "row",
+              gap: 16,
+              padding: 24,
+              columns: 3,
+              justifyContent: "start",
+              alignItems: "start",
+              ...page.layout,
+              ...patch,
+            },
+          }
+        : page),
+    },
+  })),
   setZoom: (zoom) => set({ zoom: Math.min(2, Math.max(0.25, zoom)) }),
 }));
