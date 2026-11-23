@@ -335,6 +335,22 @@ export default function App() {
 
         <aside className="inspector">
           <div className="panel-heading">Properties & Layers</div>
+          <div className="page-layout-panel">
+            <div className="layers-heading">Page layout <span>Root</span></div>
+            <label><small>Layout mode</small><select value={pageLayout.mode} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ mode: event.target.value as "free" | "flex" | "grid" | "flow" })}><option value="free">Free positioning</option><option value="flex">Flexbox</option><option value="grid">CSS Grid</option><option value="flow">Flow</option></select></label>
+            {pageLayout.mode !== "free" && <>
+              <div className="property-grid">
+                <label><small>Gap</small><input type="number" min="0" max="200" value={pageLayout.gap} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ gap: Math.max(0, Math.min(200, Number(event.target.value))) })} /></label>
+                <label><small>Padding</small><input type="number" min="0" max="200" value={pageLayout.padding} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ padding: Math.max(0, Math.min(200, Number(event.target.value))) })} /></label>
+              </div>
+              {pageLayout.mode === "flex" && <label><small>Direction</small><select value={pageLayout.direction} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ direction: event.target.value as "row" | "column" })}><option value="row">Horizontal</option><option value="column">Vertical</option></select></label>}
+              {pageLayout.mode === "grid" && <label><small>Columns</small><input type="number" min="1" max="12" value={pageLayout.columns} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ columns: Math.max(1, Math.min(12, Number(event.target.value))) })} /></label>}
+              <div className="property-grid">
+                <label><small>Justify</small><select value={pageLayout.justifyContent} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ justifyContent: event.target.value as typeof pageLayout.justifyContent })}><option value="start">Start</option><option value="center">Center</option><option value="end">End</option><option value="space-between">Space between</option><option value="space-around">Space around</option></select></label>
+                <label><small>Align items</small><select value={pageLayout.alignItems} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ alignItems: event.target.value as typeof pageLayout.alignItems })}><option value="start">Start</option><option value="center">Center</option><option value="end">End</option><option value="stretch">Stretch</option></select></label>
+              </div>
+            </>}
+          </div>
           {selectedNode ? (
             <div className="inspector-content">
               <span className="field-label">Selected element</span>
