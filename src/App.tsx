@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useEditorStore } from "./store/editor-store";
 import { saveProject } from "./storage/project-storage";
 import type { DocumentNode, WebsiteProject } from "./model/document";
+import { exportWebsiteHtml } from "./export/site-export";
 
 function isWebsiteProject(value: unknown): value is WebsiteProject {
   if (!value || typeof value !== "object") return false;
@@ -405,6 +406,21 @@ export default function App() {
             anchor.click();
             window.setTimeout(() => URL.revokeObjectURL(url), 1500);
           }}>Export project</button>
+          <button className="button button-primary" type="button" onClick={() => {
+            try {
+              const html = exportWebsiteHtml(project);
+              const fileName = `${project.name.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-|-$/g, "") || "redro-website"}.html`;
+              const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+              const url = URL.createObjectURL(blob);
+              const anchor = document.createElement("a");
+              anchor.href = url;
+              anchor.download = fileName;
+              anchor.click();
+              window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+            } catch (error) {
+              window.alert(error instanceof Error ? error.message : "Unable to export this website.");
+            }
+          }}>Export website</button>
         </div>
       </header>
 
