@@ -366,7 +366,24 @@ export default function App() {
         <h1>Redro Web Designer</h1>
         <p>This editor is designed for desktop screens. Open it on a computer to continue designing.</p>
       </div>
-      <input ref={htmlProjectInputRef} className="visually-hidden" type="file" multiple accept=".html,.htm,.css,.js,.mjs,.txt,.json,.svg,.png,.jpg,.jpeg,.webp,.gif,.woff,.woff2,.ttf,.ico" onChange={async (event) => {\n        const selected = Array.from(event.target.files ?? []);\n        event.target.value = "";\n        if (!selected.length) return;\n        if (selected.some((file) => file.size > 20 * 1024 * 1024)) { window.alert("Each project file must be 20 MB or smaller."); return; }\n        try {\n          const loaded = await Promise.all(selected.map(async (file): Promise<ProjectFile> => {\n            const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;\n            const extension = path.split(".").pop()?.toLowerCase();\n            const kind: ProjectFile["kind"] = extension === "html" || extension === "htm" ? "html" : extension === "css" ? "css" : ["js", "mjs"].includes(extension ?? "") ? "js" : "asset";\n            return { path, kind, content: kind === "asset" ? "" : await file.text() };\n          }));\n          const htmlFiles = loaded.filter((file) => file.kind === "html");\n          if (!htmlFiles.length) throw new Error("No HTML file was found. Select a project containing an .html file.");\n          setExternalProjectFiles(loaded);\n        } catch (error) { window.alert(error instanceof Error ? error.message : "Unable to open this website project."); }\n      }} />\n      <input ref={projectInputRef} className="visually-hidden" type="file" accept=".json,application/json" onChange={async (event) => {
+      <input ref={(element) => { htmlProjectInputRef.current = element; element?.setAttribute("webkitdirectory", ""); }} className="visually-hidden" type="file" multiple accept=".html,.htm,.css,.js,.mjs,.txt,.json,.svg,.png,.jpg,.jpeg,.webp,.gif,.woff,.woff2,.ttf,.ico" onChange={async (event) => {
+        const selected = Array.from(event.target.files ?? []);
+        event.target.value = "";
+        if (!selected.length) return;
+        if (selected.some((file) => file.size > 20 * 1024 * 1024)) { window.alert("Each project file must be 20 MB or smaller."); return; }
+        try {
+          const loaded = await Promise.all(selected.map(async (file): Promise<ProjectFile> => {
+            const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
+            const extension = path.split(".").pop()?.toLowerCase();
+            const kind: ProjectFile["kind"] = extension === "html" || extension === "htm" ? "html" : extension === "css" ? "css" : ["js", "mjs"].includes(extension ?? "") ? "js" : "asset";
+            return { path, kind, content: kind === "asset" ? "" : await file.text() };
+          }));
+          const htmlFiles = loaded.filter((file) => file.kind === "html");
+          if (!htmlFiles.length) throw new Error("No HTML file was found. Select a project containing an .html file.");
+          setExternalProjectFiles(loaded);
+        } catch (error) { window.alert(error instanceof Error ? error.message : "Unable to open this website project."); }
+      }} />
+      <input ref={projectInputRef} className="visually-hidden" type="file" accept=".json,application/json" onChange={async (event) => {
         const file = event.target.files?.[0];
         event.target.value = "";
         if (!file) return;
@@ -407,7 +424,8 @@ export default function App() {
         <div className="topbar-actions">
           <span className={storageError ? "save-state save-error" : "save-state"}><i /> {storageError ? "Storage issue" : "Saved on this device"}</span>
           <button className="button" type="button" onClick={() => setShowGuide((value) => !value)}>Help / Guide</button>
-          <button className="button" type="button" onClick={() => htmlProjectInputRef.current?.click()}>Open HTML project</button>\n          <button className="button" type="button" onClick={() => projectInputRef.current?.click()}>Open Redro project</button>
+          <button className="button" type="button" onClick={() => htmlProjectInputRef.current?.click()}>Open HTML project</button>
+          <button className="button" type="button" onClick={() => projectInputRef.current?.click()}>Open Redro project</button>
           <button className="button button-primary" type="button" onClick={() => {
             const fileName = `${project.name.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-|-$/g, "") || "redro-project"}.redro.json`;
             const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
@@ -436,7 +454,8 @@ export default function App() {
         </div>
       </header>
 
-      {storageError && <div className="storage-warning" role="status">{storageError} · Changes may not be saved on this device.</div>}\n      {externalProjectFiles && <ProjectCodeStudio initialFiles={externalProjectFiles} onClose={() => setExternalProjectFiles(null)} />}
+      {storageError && <div className="storage-warning" role="status">{storageError} · Changes may not be saved on this device.</div>}
+      {externalProjectFiles && <ProjectCodeStudio initialFiles={externalProjectFiles} onClose={() => setExternalProjectFiles(null)} />}
       <div className="workspace">
         <aside className="tool-rail" aria-label="Design tools">
           <div className="rail-section-label">ADD ELEMENT</div>
