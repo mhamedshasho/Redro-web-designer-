@@ -15,6 +15,7 @@ export interface NodeLayout {
   columns?: number;
   justifyContent?: "start" | "center" | "end" | "space-between" | "space-around";
   alignItems?: "start" | "center" | "end" | "stretch";
+  imageFit?: "contain" | "cover" | "fill";
 }
 
 export interface NodeStyle {
@@ -106,6 +107,18 @@ export function createShapeNode(x = 120, y = 120): DocumentNode {
     text: "",
     layout: { ...node.layout, width: 180, height: 110 },
     style: { ...node.style, backgroundColor: "#ef3340", borderRadius: 8 },
+  };
+}
+
+export function createImageNode(src: string, x = 140, y = 140): DocumentNode {
+  const node = createTextNode(x, y);
+  return {
+    ...node,
+    type: "image",
+    name: "Image",
+    text: src,
+    layout: { ...node.layout, width: 320, height: 220, imageFit: "contain" },
+    style: { ...node.style, backgroundColor: "#202027", borderRadius: 6 },
   };
 }
 
