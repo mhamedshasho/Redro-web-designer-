@@ -86,7 +86,9 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
     const onMessage = (event: MessageEvent) => {
       if (event.source !== iframeRef.current?.contentWindow || event.data?.source !== "redro-project-editor") return;
       if (event.data.type === "select") setSelected(event.data.payload as SelectedElement);
-      if (event.data.type === "export") {\n        setFiles((current) => current.map((file) => file.path === htmlPath ? { ...file, content: event.data.payload as string } : file));\n        window.alert("Visual changes applied to the HTML source. Download the updated HTML file to save it.");\n      }
+      if (event.data.type === "export") {\n        setFiles((current) => current.map((file) => file.path === htmlPath ? { ...file, content: event.data.payload as string } : file));
+        window.alert("Visual changes applied to the HTML source. Download the updated HTML file to save it.");
+      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
