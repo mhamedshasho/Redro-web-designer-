@@ -253,6 +253,7 @@ export const useEditorStore = create<EditorState>((set) => ({
       } catch (error) {
         initializationPromise = null;
         set({
+          activePageId: useEditorStore.getState().project.pages[0]!.id,
           isReady: true,
           storageError: error instanceof Error ? error.message : "Local project storage is unavailable.",
         });
@@ -549,6 +550,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const previous = state.historyPast[state.historyPast.length - 1];
     return {
       project: previous,
+      activePageId: previous.pages.some((page) => page.id === state.activePageId) ? state.activePageId : previous.pages[0]!.id,
       historyPast: state.historyPast.slice(0, -1),
       historyFuture: [state.project, ...state.historyFuture].slice(0, HISTORY_LIMIT),
       selectedNodeIds: [],
@@ -559,6 +561,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const next = state.historyFuture[0];
     return {
       project: next,
+      activePageId: next.pages.some((page) => page.id === state.activePageId) ? state.activePageId : next.pages[0]!.id,
       historyPast: [...state.historyPast, state.project].slice(-HISTORY_LIMIT),
       historyFuture: state.historyFuture.slice(1),
       selectedNodeIds: [],
