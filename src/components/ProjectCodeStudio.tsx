@@ -8,7 +8,8 @@ function escapeRegExp(value: string): string {
 }
 
 function buildPreview(files: ProjectFile[], htmlPath: string): string {
-  let html = files.find((file) => file.path === htmlPath)?.content ?? "";\n  const originalMarkup = html;
+  let html = files.find((file) => file.path === htmlPath)?.content ?? "";
+  const originalMarkup = html;
   const styles = files.filter((file) => file.kind === "css");
   const scripts = files.filter((file) => file.kind === "js");
   for (const file of styles) {
@@ -84,7 +85,8 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.source !== iframeRef.current?.contentWindow || event.data?.source !== "redro-project-editor") return;
-      if (event.data.type === "select") setSelected(event.data.payload as SelectedElement);\n      if (event.data.type === "export") {\n        setFiles((current) => current.map((file) => file.path === htmlPath ? { ...file, content: event.data.payload as string } : file));\n        window.alert("Visual changes applied to the HTML source. Download the updated HTML file to save it.");\n      }
+      if (event.data.type === "select") setSelected(event.data.payload as SelectedElement);
+      if (event.data.type === "export") {\n        setFiles((current) => current.map((file) => file.path === htmlPath ? { ...file, content: event.data.payload as string } : file));\n        window.alert("Visual changes applied to the HTML source. Download the updated HTML file to save it.");\n      }
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
