@@ -42,6 +42,12 @@ export default function App() {
   const isReady = useEditorStore((state) => state.isReady);
   const storageError = useEditorStore((state) => state.storageError);
   const initialize = useEditorStore((state) => state.initialize);
+  const zoom = useEditorStore((state) => state.zoom);
+  const addText = useEditorStore((state) => state.addText);
+  const setZoom = useEditorStore((state) => state.setZoom);
+  const selectedNodeId = useEditorStore((state) => state.selectedNodeId);
+  const nodes = project.pages[0]?.nodes ?? [];
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId);
 
   useEffect(() => {
     void initialize();
@@ -63,13 +69,6 @@ export default function App() {
   if (!isReady) {
     return <div className="startup-screen">REDRO <span>WEB DESIGNER</span><p>Opening your workspace…</p></div>;
   }
-  const zoom = useEditorStore((state) => state.zoom);
-  const addText = useEditorStore((state) => state.addText);
-  const setZoom = useEditorStore((state) => state.setZoom);
-  const selectedNodeId = useEditorStore((state) => state.selectedNodeId);
-  const nodes = project.pages[0]?.nodes ?? [];
-  const selectedNode = nodes.find((node) => node.id === selectedNodeId);
-
   return (
     <main className="app-shell">
       <header className="topbar">
