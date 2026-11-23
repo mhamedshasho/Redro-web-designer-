@@ -50,6 +50,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Let any overlapping Pages build finish
+        run: sleep 20
+      - name: Deploy the Vite production artifact
         id: deployment
         uses: actions/deploy-pages@v4
