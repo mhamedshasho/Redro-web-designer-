@@ -10,6 +10,7 @@ describe("editor store", () => {
       historyPast: [],
       historyFuture: [],
       zoom: 1,
+      snapEnabled: true,
       isReady: true,
       storageError: null,
     });
@@ -80,6 +81,31 @@ describe("editor store", () => {
     expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.locked).toBe(true);
     useEditorStore.getState().undo();
     expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.locked).toBe(false);
+  });
+
+  it("snaps selected elements to the 8px grid", () => {
+    useEditorStore.getState().addText();
+    const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().updateNodeLayout(node.id, { x: 83, y: 91 });
+    useEditorStore.getState().selectNode(node.id);
+    useEditorStore.getState().snapSelectedToGrid();
+    const snapped = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    expect(snapped.layout.x).toBe(80);
+    expect(snapped.layout.y).toBe(88);
+  });
+
+  it("aligns multiple selected elements to the same left edge", () => {
+    useEditorStore.getState().addText();
+    const first = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addShape();
+    const second = useEditorStore.getState().project.pages[0]!.nodes[1]!;
+    useEditorStore.getState().updateNodeLayout(first.id, { x: 60 });
+    useEditorStore.getState().updateNodeLayout(second.id, { x: 240 });
+    useEditorStore.getState().selectNode(first.id);
+    useEditorStore.getState().selectNode(second.id, true);
+    useEditorStore.getState().alignSelected("left");
+    const nodes = useEditorStore.getState().project.pages[0]!.nodes;
+    expect(nodes[0]!.layout.x).toBe(nodes[1]!.layout.x);
   });
 
   it("does not move locked elements", () => {
