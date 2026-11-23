@@ -77,8 +77,7 @@ function nodeStyles(node: DocumentNode, freePosition: boolean): string {
     ? `background:${background};border-radius:${radius}px;`
     : "";
   const padding = container ? `padding:${finite(layout.padding, 12, 0, 200)}px;` : "padding:4px;";
-  const childLayout = container && layout.mode === "free" ? "position:relative;" : "";
-  return `${common}${typography}${backgroundStyle}${padding}${childLayout}${container ? "overflow:visible;" : ""}`;
+  return `${common}${typography}${backgroundStyle}${padding}${container ? "overflow:visible;" : ""}`;
 }
 
 function renderNode(node: DocumentNode, parentMode: PageLayout["mode"]): string {
