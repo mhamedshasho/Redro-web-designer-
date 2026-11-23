@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import { useEditorStore } from "./store/editor-store";
 import { saveProject } from "./storage/project-storage";
 import type { DocumentNode } from "./model/document";
@@ -14,7 +14,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
   const dragRef = useRef<{ x: number; y: number } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (node.locked || event.button !== 0) return;
     event.stopPropagation();
     selectNode(node.id, event.shiftKey);
@@ -41,7 +41,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
 
-  const startResize = (event: React.PointerEvent<HTMLButtonElement>) => {
+  const startResize = (event: PointerEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
     if (node.locked) return;
@@ -126,6 +126,8 @@ export default function App() {
   const duplicateSelected = useEditorStore((state) => state.duplicateSelected);
   const deleteSelected = useEditorStore((state) => state.deleteSelected);
   const updateNodeLayout = useEditorStore((state) => state.updateNodeLayout);
+  const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
+  const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
   const nodes = project.pages[0]?.nodes ?? [];
   const selectedNode = nodes.find((node) => node.id === selectedNodeIds[0]);
 
@@ -278,16 +280,14 @@ export default function App() {
           <div className="layers-panel">
             <div className="layers-heading">Layers <span>{nodes.length}</span></div>
             {[...nodes].reverse().map((node) => (
-              <button
-                className={selectedNodeIds.includes(node.id) ? "layer-row selected" : "layer-row"}
-                type="button"
-                key={node.id}
-                onClick={() => useEditorStore.getState().selectNode(node.id)}
-              >
-                <span>{node.type === "text" ? "T" : "◇"}</span>
-                <span className="layer-name">{node.name}</span>
-                <span>{node.visible ? "◉" : "○"}</span>
-              </button>
+              <div className={selectedNodeIds.includes(node.id) ? "layer-row selected" : "layer-row"} key={node.id}>
+                <button className="layer-select" type="button" onClick={() => useEditorStore.getState().selectNode(node.id)}>
+                  <span>{node.type === "text" ? "T" : "◇"}</span>
+                  <span className="layer-name">{node.name}</span>
+                </button>
+                <button className="layer-action" type="button" aria-label={node.visible ? "Hide layer" : "Show layer"} onClick={() => toggleNodeVisibility(node.id)}>{node.visible ? "◉" : "○"}</button>
+                <button className={node.locked ? "layer-action locked" : "layer-action"} type="button" aria-label={node.locked ? "Unlock layer" : "Lock layer"} onClick={() => toggleNodeLock(node.id)}>{node.locked ? "▣" : "▢"}</button>
+              </div>
             ))}
           </div>
         </aside>
