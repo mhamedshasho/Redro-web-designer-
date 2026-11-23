@@ -11,17 +11,21 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
   const resizeNode = useEditorStore((state) => state.resizeNode);
   const commitHistory = useEditorStore((state) => state.commitHistory);
   const selected = selectedNodeIds.includes(node.id);
-  const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const dragRef = useRef<{ x: number; y: number; committed: boolean } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (node.locked || event.button !== 0) return;
     event.stopPropagation();
-    selectNode(node.id, event.shiftKey);
-    const currentSelection = useEditorStore.getState().selectedNodeIds;
-    const ids = currentSelection.includes(node.id) ? currentSelection : [node.id];
-    commitHistory();
-    dragRef.current = { x: event.clientX, y: event.clientY };
+    const previousSelection = useEditorStore.getState().selectedNodeIds;
+    if (event.shiftKey) {
+      selectNode(node.id, true);
+    } else if (!previousSelection.includes(node.id)) {
+      selectNode(node.id);
+    }
+    const ids = useEditorStore.getState().selectedNodeIds;
+    if (!ids.includes(node.id)) return;
+    dragRef.current = { x: event.clientX, y: event.clientY, committed: false };
     event.currentTarget.setPointerCapture(event.pointerId);
     (event.currentTarget as HTMLDivElement).dataset.dragIds = ids.join(",");
   };
@@ -30,7 +34,11 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     if (!dragRef.current) return;
     const dx = (event.clientX - dragRef.current.x) / zoom;
     const dy = (event.clientY - dragRef.current.y) / zoom;
-    dragRef.current = { x: event.clientX, y: event.clientY };
+    if (!dragRef.current.committed) {
+      commitHistory();
+      dragRef.current.committed = true;
+    }
+    dragRef.current = { ...dragRef.current, x: event.clientX, y: event.clientY };
     const ids = (event.currentTarget as HTMLDivElement).dataset.dragIds?.split(",").filter(Boolean) ?? [node.id];
     moveNodes(ids, dx, dy);
   };
