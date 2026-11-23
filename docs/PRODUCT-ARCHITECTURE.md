@@ -3,7 +3,8 @@
 **Status:** Architecture baseline  
 **Product:** Redro Web Designer  
 **Owner:** Redro  
-**Initial browser targets:** Chrome and Firefox
+**Initial browser targets:** Chrome and Firefox  
+**Editor platform:** Desktop only; phone-sized editor layouts are out of scope
 
 ## 1. Product definition
 
@@ -35,7 +36,7 @@ The output must be a real website made of HTML, CSS, JavaScript, and assets—no
 - Text, image, shape, button, container, and section elements
 - Inspector that changes according to the selected element
 - Typography, fill, border, radius, opacity, shadow, spacing, alignment, and sizing controls
-- Desktop, tablet, and mobile preview modes
+- Desktop editor workspace; generated websites may use responsive layouts for visitor devices
 - Undo/redo and autosave
 - Export of a working static website
 - Optional PWA packaging for exported sites
@@ -291,8 +292,9 @@ Name is optional. Additional notes are optional except when the user selects Oth
 
 ### M3 — Layout and responsive editing
 - Implement free, flex, and grid layout modes.
-- Implement responsive overrides and viewport previews.
-- Test layouts at representative mobile, tablet, and desktop sizes.
+- Implement responsive overrides and viewport previews for the websites being authored.
+- Keep the editor application itself desktop-only.
+- Test generated website layouts at representative desktop, tablet, and phone widths.
 
 ### M4 — Shared preview and export
 - Implement shared rendering primitives.
@@ -331,7 +333,7 @@ A milestone is not complete because a screen looks convincing. It is complete on
 - Keyboard and pointer interactions do not conflict.
 
 ### Responsive
-- Desktop, tablet, and mobile overrides remain independent where configured.
+- Generated website breakpoint overrides remain independent where configured.
 - Changing one breakpoint does not unintentionally corrupt another.
 - Preview dimensions match the selected viewport.
 
