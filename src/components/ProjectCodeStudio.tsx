@@ -112,8 +112,10 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
 
   const updateActive = (content: string) => setFiles((current) => current.map((file) => file.path === activePath ? { ...file, content } : file));
   const updateElement = (property: string, value: string) => iframeRef.current?.contentWindow?.postMessage({ source: "redro-parent-editor", type: "update", payload: { property, value } }, "*");
-  const downloadFile = (file: ProjectFile) => {
-    const blob = new Blob([file.content], { type: file.kind === "html" ? "text/html;charset=utf-8" : file.kind === "css" ? "text/css;charset=utf-8" : file.kind === "js" ? "text/javascript;charset=utf-8" : "application/octet-stream" });
+  const downloadFile = async (file: ProjectFile) => {
+    const blob = file.kind === "asset" && file.content.startsWith("data:")
+      ? await (await fetch(file.content)).blob()
+      : new Blob([file.content], { type: file.kind === "html" ? "text/html;charset=utf-8" : file.kind === "css" ? "text/css;charset=utf-8" : file.kind === "js" ? "text/javascript;charset=utf-8" : "application/octet-stream" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
