@@ -25,7 +25,7 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
       selectNode(node.id);
     }
     const ids = useEditorStore.getState().selectedNodeIds;
-    if (!ids.includes(node.id)) return;
+    if (!ids.includes(node.id) || layoutMode !== "free") return;
     dragRef.current = { x: event.clientX, y: event.clientY, committed: false };
     event.currentTarget.setPointerCapture(event.pointerId);
     (event.currentTarget as HTMLDivElement).dataset.dragIds = ids.join(",");
@@ -282,9 +282,9 @@ export default function App() {
               <button type="button" onClick={undo} aria-label="Undo">Undo</button>
               <button type="button" onClick={redo} aria-label="Redo">Redo</button>
               <span className="muted">{selectedNodeIds.length} selected</span>
-              <button className={snapEnabled ? "snap-toggle active" : "snap-toggle"} type="button" onClick={() => setSnapEnabled(!snapEnabled)}>Snap 8px {snapEnabled ? "On" : "Off"}</button>
+              <button className={snapEnabled ? "snap-toggle active" : "snap-toggle"} type="button" disabled={pageLayout.mode !== "free"} onClick={() => setSnapEnabled(!snapEnabled)}>Snap 8px {snapEnabled ? "On" : "Off"}</button>
               <div className="align-controls">
-                <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("left")} title="Align left">⇤</button>
+                <button type="button" disabled={selectedNodeIds.length < 2 || pageLayout.mode !== "free"} onClick={() => alignSelected("left")} title="Align left">⇤</button>
                 <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("center-x")} title="Align horizontal center">↔</button>
                 <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("right")} title="Align right">⇥</button>
                 <button type="button" disabled={selectedNodeIds.length < 2} onClick={() => alignSelected("top")} title="Align top">⇡</button>
