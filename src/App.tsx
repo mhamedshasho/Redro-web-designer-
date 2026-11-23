@@ -159,7 +159,7 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
       aria-label={node.name}
       aria-pressed={selected}
     >
-      {node.type !== "container" && <span className="node-content">{node.text}</span>}
+      {node.type === "image" ? <img className="node-image" src={node.text} alt={node.name} draggable={false} style={{ objectFit: node.layout.imageFit ?? "contain", borderRadius: node.style.borderRadius }} /> : node.type !== "container" && <span className="node-content">{node.text}</span>}
       {node.children.filter((child) => child.visible).map((child) => <CanvasNode key={child.id} node={child} zoom={zoom} layoutMode={node.layout.mode} inheritedLocked={effectiveLocked} />)}
       {selected && !effectiveLocked && (
         <>
@@ -228,6 +228,8 @@ export default function App() {
   const addText = useEditorStore((state) => state.addText);
   const addShape = useEditorStore((state) => state.addShape);
   const addContainer = useEditorStore((state) => state.addContainer);
+  const addImage = useEditorStore((state) => state.addImage);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const groupSelected = useEditorStore((state) => state.groupSelected);
   const moveSelectedIntoContainer = useEditorStore((state) => state.moveSelectedIntoContainer);
   const ungroupSelected = useEditorStore((state) => state.ungroupSelected);
@@ -301,6 +303,16 @@ export default function App() {
         <h1>Redro Web Designer</h1>
         <p>This editor is designed for desktop screens. Open it on a computer to continue designing.</p>
       </div>
+      <input ref={imageInputRef} className="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" onChange={(event) => {
+        const file = event.target.files?.[0];
+        event.target.value = "";
+        if (!file) return;
+        if (file.size > 8 * 1024 * 1024) { window.alert("Image must be 8 MB or smaller."); return; }
+        const reader = new FileReader();
+        reader.onload = () => { if (typeof reader.result === "string") addImage(reader.result, file.name.replace(/\.[^.]+$/, "")); };
+        reader.onerror = () => window.alert("Unable to read this image file.");
+        reader.readAsDataURL(file);
+      }} />
       <header className="topbar">
         <a className="brand" href="/" aria-label="Redro Web Designer home">
           <span className="brand-mark">R</span>
@@ -320,6 +332,7 @@ export default function App() {
           <button className="tool-button" type="button" onClick={addText} aria-label="Add text">T</button>
           <button className="tool-button" type="button" onClick={addShape} aria-label="Add rectangle">▰</button>
           <button className="tool-button" type="button" onClick={addContainer} aria-label="Add container">▣</button>
+          <button className="tool-button" type="button" onClick={() => imageInputRef.current?.click()} aria-label="Insert image">▧</button>
           <div className="rail-divider" />
           <button className="tool-button" type="button" onClick={undo} aria-label="Undo">↶</button>
           <button className="tool-button" type="button" onClick={redo} aria-label="Redo">↷</button>
@@ -433,13 +446,18 @@ export default function App() {
                 </>}
               </>}
 
-              <span className="field-label">Content</span>
-              <textarea
-                value={selectedNode.text}
-                onFocus={() => useEditorStore.getState().commitHistory()}
-                onChange={(event) => useEditorStore.getState().updateNodeText(selectedNode.id, event.target.value)}
-                rows={3}
-              />
+              {selectedNode.type === "image" ? <>
+                <span className="field-label">Image fit</span>
+                <select value={selectedNode.layout.imageFit ?? "contain"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { imageFit: event.target.value as "contain" | "cover" | "fill" })}><option value="contain">Contain</option><option value="cover">Cover</option><option value="fill">Stretch</option></select>
+              </> : <>
+                <span className="field-label">Content</span>
+                <textarea
+                  value={selectedNode.text}
+                  onFocus={() => useEditorStore.getState().commitHistory()}
+                  onChange={(event) => useEditorStore.getState().updateNodeText(selectedNode.id, event.target.value)}
+                  rows={3}
+                />
+              </>}
               <span className="field-label">Position & Size</span>
               <div className="property-grid">
                 <label><small>X</small><input type="number" value={Math.round(selectedNode.layout.x)} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { x: Number(event.target.value) })} /></label>
