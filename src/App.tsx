@@ -376,7 +376,11 @@ export default function App() {
             const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name;
             const extension = path.split(".").pop()?.toLowerCase();
             const kind: ProjectFile["kind"] = extension === "html" || extension === "htm" ? "html" : extension === "css" ? "css" : ["js", "mjs"].includes(extension ?? "") ? "js" : "asset";
-            return { path, kind, content: kind === "asset" ? "" : await file.text() };
+            if (kind !== "asset") return { path, kind, content: await file.text() };
+            const bytes = new Uint8Array(await file.arrayBuffer());
+            let binary = "";
+            for (let offset = 0; offset < bytes.length; offset += 0x8000) binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+            return { path, kind, content: `data:${file.type || "application/octet-stream"};base64,${btoa(binary)}` };
           }));
           const htmlFiles = loaded.filter((file) => file.kind === "html");
           if (!htmlFiles.length) throw new Error("No HTML file was found. Select a project containing an .html file.");
