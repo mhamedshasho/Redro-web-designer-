@@ -164,7 +164,8 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
             <label>Width<input value={selected.width} onChange={(event) => { setSelected({ ...selected, width: event.target.value }); updateElement("width", event.target.value); }} /></label>
             <label>Height<input value={selected.height} onChange={(event) => { setSelected({ ...selected, height: event.target.value }); updateElement("height", event.target.value); }} /></label>
           </> : <p>Click any visible element in the page to select it and edit its text, colors, size and dimensions.</p>}
-          <button type="button" onClick={() => iframeRef.current?.contentWindow?.postMessage({ source: "redro-parent-editor", type: "export" }, "*")}>Apply visual edits to HTML</button>\n          <small>Apply visual edits to write them into the HTML source, then download the updated file.</small>
+          <button type="button" onClick={() => iframeRef.current?.contentWindow?.postMessage({ source: "redro-parent-editor", type: "export" }, "*")}>Apply visual edits to HTML</button>
+          <small>Apply visual edits to write them into the HTML source, then download the updated file.</small>
         </aside>}
       </div>
       <footer className="project-studio-footer">
