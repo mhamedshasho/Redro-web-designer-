@@ -84,6 +84,62 @@ function mapManyNodeTree(nodes: DocumentNode[], ids: string[], update: (node: Do
   });
 }
 
+function reorderNodeTree(nodes: DocumentNode[], id: string, direction: "forward" | "backward"): { nodes: DocumentNode[]; changed: boolean } {
+  const index = nodes.findIndex((node) => node.id === id);
+  if (index >= 0) {
+    const target = direction === "forward" ? index + 1 : index - 1;
+    if (target < 0 || target >= nodes.length) return { nodes, changed: false };
+    const reordered = [...nodes];
+    [reordered[index], reordered[target]] = [reordered[target]!, reordered[index]!];
+    return { nodes: reordered, changed: true };
+  }
+  for (let i = 0; i < nodes.length; i += 1) {
+    if (!nodes[i]!.children.length) continue;
+    const nested = reorderNodeTree(nodes[i]!.children, id, direction);
+    if (nested.changed) return {
+      nodes: nodes.map((node, nodeIndex) => nodeIndex === i ? { ...node, children: nested.nodes } : node),
+      changed: true,
+    };
+  }
+  return { nodes, changed: false };
+}
+
+function cloneNodeTree(node: DocumentNode, offset = 24): DocumentNode {
+  return {
+    ...node,
+    id: crypto.randomUUID(),
+    name: node.name.endsWith(" copy") ? node.name : `${node.name} copy`,
+    layout: { ...node.layout, x: node.layout.x + offset, y: node.layout.y + offset },
+    children: node.children.map((child) => cloneNodeTree(child, 0)),
+  };
+}
+
+function findNodeTree(nodes: DocumentNode[], id: string): DocumentNode | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const nested = findNodeTree(node.children, id);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+function duplicateAsSibling(nodes: DocumentNode[], id: string, copies: DocumentNode[]): { nodes: DocumentNode[]; inserted: boolean } {
+  const index = nodes.findIndex((node) => node.id === id);
+  if (index >= 0) {
+    const next = [...nodes];
+    next.splice(index + 1, 0, ...copies);
+    return { nodes: next, inserted: true };
+  }
+  for (let i = 0; i < nodes.length; i += 1) {
+    const nested = duplicateAsSibling(nodes[i]!.children, id, copies);
+    if (nested.inserted) return {
+      nodes: nodes.map((node, nodeIndex) => nodeIndex === i ? { ...node, children: nested.nodes } : node),
+      inserted: true,
+    };
+  }
+  return { nodes, inserted: false };
+}
+
 function pushHistory(state: EditorState): Partial<EditorState> {
   return {
     historyPast: [...state.historyPast, state.project].slice(-HISTORY_LIMIT),
@@ -249,15 +305,11 @@ export const useEditorStore = create<EditorState>((set) => ({
     project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, locked: !node.locked }))),
   })),
   moveLayer: (id, direction) => set((state) => {
-    const nodes = currentNodes(state.project);
-    const index = nodes.findIndex((node) => node.id === id);
-    const target = direction === "forward" ? index + 1 : index - 1;
-    if (index < 0 || target < 0 || target >= nodes.length) return {};
-    const reordered = [...nodes];
-    [reordered[index], reordered[target]] = [reordered[target]!, reordered[index]!];
+    const reordered = reorderNodeTree(currentNodes(state.project), id, direction);
+    if (!reordered.changed) return {};
     return {
       ...pushHistory(state),
-      project: updateFirstPage(state.project, () => reordered),
+      project: updateFirstPage(state.project, () => reordered.nodes),
     };
   }),
   rotateNode: (id, rotation) => set((state) => ({
@@ -276,18 +328,24 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   duplicateSelected: () => set((state) => {
-    const selected = currentNodes(state.project).filter((node) => state.selectedNodeIds.includes(node.id));
+    const roots = currentNodes(state.project);
+    const selected = state.selectedNodeIds.map((id) => findNodeTree(roots, id)).filter((node): node is DocumentNode => Boolean(node));
     if (!selected.length) return {};
-    const copies = selected.map((node) => ({
-      ...node,
-      id: crypto.randomUUID(),
-      name: `${node.name} copy`,
-      layout: { ...node.layout, x: node.layout.x + 24, y: node.layout.y + 24 },
-    }));
+    let nextNodes = roots;
+    const newIds: string[] = [];
+    for (const node of selected) {
+      const copy = cloneNodeTree(node);
+      const inserted = duplicateAsSibling(nextNodes, node.id, [copy]);
+      if (inserted.inserted) {
+        nextNodes = inserted.nodes;
+        newIds.push(copy.id);
+      }
+    }
+    if (!newIds.length) return {};
     return {
       ...pushHistory(state),
-      project: updateFirstPage(state.project, (nodes) => [...nodes, ...copies]),
-      selectedNodeIds: copies.map((node) => node.id),
+      project: updateFirstPage(state.project, () => nextNodes),
+      selectedNodeIds: newIds,
     };
   }),
   commitHistory: () => set((state) => pushHistory(state)),
