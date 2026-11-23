@@ -154,9 +154,8 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
         letterSpacing: node.style.letterSpacing ?? 0,
         textAlign: node.style.textAlign,
         opacity: node.style.opacity,
-        background: node.style.backgroundColor,
-        borderRadius: node.type === "shape" && node.layout.shapeKind === "ellipse" ? "50%" : node.style.borderRadius,
-        clipPath: node.type === "shape" ? shapeClipPaths[node.layout.shapeKind ?? "rectangle"] : undefined,
+        background: node.type === "shape" ? "transparent" : node.style.backgroundColor,
+        borderRadius: node.type === "shape" ? 0 : node.style.borderRadius,
         display: node.type === "container" ? (node.layout.mode === "grid" ? "grid" : node.layout.mode === "free" ? "block" : "flex") : "flex",
         flexDirection: node.type === "container" && node.layout.mode === "flex" ? (node.layout.direction ?? "column") : undefined,
         gridTemplateColumns: node.type === "container" && node.layout.mode === "grid" ? `repeat(${node.layout.columns ?? 2}, minmax(0, 1fr))` : undefined,
@@ -183,7 +182,7 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
       aria-label={node.name}
       aria-pressed={selected}
     >
-      {node.type === "image" ? <img className="node-image" src={node.text} alt={node.name} draggable={false} style={{ objectFit: node.layout.imageFit ?? "contain", objectPosition: `${node.layout.imagePositionX ?? 50}% ${node.layout.imagePositionY ?? 50}%`, borderRadius: node.style.borderRadius }} /> : node.type !== "container" && <span className="node-content">{node.text}</span>}
+      {node.type === "shape" ? <div className="shape-visual" style={{ background: node.style.backgroundColor, borderRadius: node.layout.shapeKind === "ellipse" ? "50%" : node.style.borderRadius, clipPath: shapeClipPaths[node.layout.shapeKind ?? "rectangle"] }} /> : node.type === "image" ? <img className="node-image" src={node.text} alt={node.name} draggable={false} style={{ objectFit: node.layout.imageFit ?? "contain", objectPosition: `${node.layout.imagePositionX ?? 50}% ${node.layout.imagePositionY ?? 50}%`, borderRadius: node.style.borderRadius }} /> : node.type !== "container" && <span className="node-content">{node.text}</span>}
       {node.children.filter((child) => child.visible).map((child) => <CanvasNode key={child.id} node={child} zoom={zoom} layoutMode={node.layout.mode} inheritedLocked={effectiveLocked} />)}
       {selected && !effectiveLocked && (
         <>
