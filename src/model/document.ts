@@ -103,6 +103,19 @@ export function createShapeNode(x = 120, y = 120): DocumentNode {
   };
 }
 
+export function createContainerNode(): DocumentNode {
+  const node = createShapeNode(160, 160);
+  return {
+    ...node,
+    type: "container",
+    name: "Container",
+    text: "",
+    layout: { ...node.layout, width: 360, height: 240, mode: "flex" },
+    style: { ...node.style, backgroundColor: "#292930", borderRadius: 12 },
+    children: [],
+  };
+}
+
 export function createProject(name = "Untitled Website"): WebsiteProject {
   const now = new Date().toISOString();
 
