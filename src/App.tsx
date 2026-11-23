@@ -199,7 +199,7 @@ function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number
     <div className="layer-tree-item">
       <div className={selected ? "layer-row selected" : "layer-row"} style={{ paddingLeft: 4 + depth * 14 }}>
         <button className="layer-expand" type="button" aria-label={expanded ? "Collapse children" : "Expand children"} disabled={!hasChildren} onClick={() => setExpanded((value) => !value)}>{hasChildren ? (expanded ? "▾" : "▸") : "·"}</button>
-        <button className="layer-select" type="button" onClick={() => selectNode(node.id)}>
+        <button className="layer-select" type="button" onClick={(event) => selectNode(node.id, event.shiftKey)}>
           <span>{node.type === "text" ? "T" : node.type === "container" ? "▣" : "◇"}</span>
           <span className="layer-name">{node.name}</span>
         </button>
@@ -227,6 +227,7 @@ export default function App() {
   const addShape = useEditorStore((state) => state.addShape);
   const addContainer = useEditorStore((state) => state.addContainer);
   const groupSelected = useEditorStore((state) => state.groupSelected);
+  const moveSelectedIntoContainer = useEditorStore((state) => state.moveSelectedIntoContainer);
   const ungroupSelected = useEditorStore((state) => state.ungroupSelected);
   const setZoom = useEditorStore((state) => state.setZoom);
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
@@ -243,6 +244,7 @@ export default function App() {
   const pageLayout = { mode: "free" as const, direction: "row" as const, gap: 16, padding: 24, columns: 3, justifyContent: "start" as const, alignItems: "start" as const, ...project.pages[0]?.layout };
   const nodes = project.pages[0]?.nodes ?? [];
   const selectedNode = selectedNodeIds[0] ? findNodeById(nodes, selectedNodeIds[0]) : undefined;
+  const selectedTargetContainer = selectedNodeIds.map((id) => findNodeById(nodes, id)).find((node) => node?.type === "container");
 
   useEffect(() => {
     void initialize();
@@ -388,6 +390,7 @@ export default function App() {
             <div className="inspector-actions">
               <button type="button" disabled={selectedNodeIds.length < 2} onClick={groupSelected}>Group</button>
               <button type="button" disabled={selectedNode?.type !== "container"} onClick={ungroupSelected}>Ungroup</button>
+              <button type="button" disabled={!selectedTargetContainer || selectedNodeIds.length < 2} onClick={() => selectedTargetContainer && moveSelectedIntoContainer(selectedTargetContainer.id)}>Move into selected container</button>
             </div>
           </div>
           <div className="page-layout-panel">
