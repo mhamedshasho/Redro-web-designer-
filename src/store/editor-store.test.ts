@@ -16,6 +16,17 @@ describe("editor store", () => {
     });
   });
 
+  it("updates page layout settings and supports undo", () => {
+    useEditorStore.getState().commitHistory();
+    useEditorStore.getState().updatePageLayout({ mode: "grid", columns: 4, gap: 24 });
+    const page = useEditorStore.getState().project.pages[0]!;
+    expect(page.layout.mode).toBe("grid");
+    expect(page.layout.columns).toBe(4);
+    expect(page.layout.gap).toBe(24);
+    useEditorStore.getState().undo();
+    expect(useEditorStore.getState().project.pages[0]!.layout.mode).toBe("free");
+  });
+
   it("adds and selects a text node", () => {
     useEditorStore.getState().addText();
 
