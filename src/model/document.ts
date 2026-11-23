@@ -9,6 +9,12 @@ export interface NodeLayout {
   width: number;
   height: number;
   rotation: number;
+  direction?: "row" | "column";
+  gap?: number;
+  padding?: number;
+  columns?: number;
+  justifyContent?: "start" | "center" | "end" | "space-between" | "space-around";
+  alignItems?: "start" | "center" | "end" | "stretch";
 }
 
 export interface NodeStyle {
@@ -110,7 +116,7 @@ export function createContainerNode(): DocumentNode {
     type: "container",
     name: "Container",
     text: "",
-    layout: { ...node.layout, width: 360, height: 240, mode: "flex" },
+    layout: { ...node.layout, width: 360, height: 240, mode: "flex", direction: "column", gap: 12, padding: 12, columns: 2, justifyContent: "start", alignItems: "start" },
     style: { ...node.style, backgroundColor: "#292930", borderRadius: 12 },
     children: [],
   };
