@@ -20,6 +20,7 @@ interface EditorState {
   selectNode: (id: string | null, additive?: boolean) => void;
   updateNodeText: (id: string, text: string) => void;
   updateNodeLayout: (id: string, patch: Partial<DocumentNode["layout"]>) => void;
+  updateNodeStyle: (id: string, patch: Partial<DocumentNode["style"]>) => void;
   moveNodes: (ids: string[], dx: number, dy: number) => void;
   resizeNode: (id: string, width: number, height: number) => void;
   rotateNode: (id: string, rotation: number) => void;
@@ -101,6 +102,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   })),
   updateNodeLayout: (id, patch) => set((state) => ({
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, layout: { ...node.layout, ...patch } } : node)),
+  })),
+  updateNodeStyle: (id, patch) => set((state) => ({
+    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, style: { ...node.style, ...patch } } : node)),
   })),
   moveNodes: (ids, dx, dy) => set((state) => ({
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => ids.includes(node.id) && !node.locked
