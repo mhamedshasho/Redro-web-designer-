@@ -34,7 +34,7 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
   const activeFile = files.find((file) => file.path === activePath);
   const htmlPath = files.find((file) => file.kind === "html")?.path ?? activePath;
   const preview = useMemo(() => buildPreview(files, htmlPath), [files, htmlPath]);
-  const dirty = files.some((file, index) => file.content !== initialFiles.find((original) => original.path === file.path)?.content) || files.length !== initialFiles.length;
+  const dirty = files.some((file) => file.content !== initialFiles.find((original) => original.path === file.path)?.content) || files.length !== initialFiles.length;
 
   useEffect(() => {
     const onBeforeUnload = (event: BeforeUnloadEvent) => {
