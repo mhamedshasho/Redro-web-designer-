@@ -242,9 +242,6 @@ function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number
   const selected = selectedNodeIds.includes(node.id);
   const hasChildren = node.children.length > 0;
   const selectNode = useEditorStore((state) => state.selectNode);
-  const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
-  const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
-  const moveLayer = useEditorStore((state) => state.moveLayer);
 
   return (
     <div className="layer-tree-item">
@@ -272,7 +269,6 @@ export default function App() {
   const zoom = useEditorStore((state) => state.zoom);
   const snapEnabled = useEditorStore((state) => state.snapEnabled);
   const setSnapEnabled = useEditorStore((state) => state.setSnapEnabled);
-  const snapSelectedToGrid = useEditorStore((state) => state.snapSelectedToGrid);
   const alignSelected = useEditorStore((state) => state.alignSelected);
   const addText = useEditorStore((state) => state.addText);
   const addShape = useEditorStore((state) => state.addShape);
@@ -299,7 +295,7 @@ export default function App() {
   const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
   const moveLayer = useEditorStore((state) => state.moveLayer);
   const updatePageLayout = useEditorStore((state) => state.updatePageLayout);
-  const pageLayout = { mode: "free" as const, direction: "row" as const, gap: 16, padding: 24, columns: 3, justifyContent: "start" as const, alignItems: "start" as const, ...project.pages[0]?.layout };
+  const pageLayout = project.pages[0]!.layout;
   const nodes = project.pages[0]?.nodes ?? [];
   const selectedNode = selectedNodeIds[0] ? findNodeById(nodes, selectedNodeIds[0]) : undefined;
   const selectedTargetContainer = selectedNodeIds.map((id) => findNodeById(nodes, id)).find((node) => node?.type === "container");
