@@ -34,11 +34,22 @@ export interface DocumentNode {
   children: DocumentNode[];
 }
 
+export interface PageLayout {
+  mode: LayoutMode;
+  direction: "row" | "column";
+  gap: number;
+  padding: number;
+  columns: number;
+  justifyContent: "start" | "center" | "end" | "space-between" | "space-around";
+  alignItems: "start" | "center" | "end" | "stretch";
+}
+
 export interface PageDocument {
   id: string;
   name: string;
   slug: string;
   title: string;
+  layout: PageLayout;
   nodes: DocumentNode[];
 }
 
@@ -107,6 +118,15 @@ export function createProject(name = "Untitled Website"): WebsiteProject {
         name: "Home",
         slug: "/",
         title: "Home",
+        layout: {
+          mode: "free",
+          direction: "row",
+          gap: 16,
+          padding: 24,
+          columns: 3,
+          justifyContent: "start",
+          alignItems: "start",
+        },
         nodes: [],
       },
     ],
