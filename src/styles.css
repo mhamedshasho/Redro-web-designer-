@@ -123,3 +123,9 @@ button { cursor: pointer; }
   .desktop-warning h1 { margin: 0 0 10px; color: #f4f4f5; font-size: 24px; }
   .desktop-warning p { max-width: 340px; color: #9999a4; font-size: 14px; line-height: 1.7; }
 }
+
+.page-layout-panel { margin: 12px 12px 0; padding: 12px; border: 1px solid var(--line); border-radius: 7px; background: #17171b; display: flex; flex-direction: column; gap: 9px; }
+.page-layout-panel label { min-width: 0; display: flex; flex-direction: column; gap: 5px; color: #898994; font-size: 10px; }
+.page-layout-panel input, .page-layout-panel select { width: 100%; min-width: 0; border: 1px solid #35353f; border-radius: 4px; padding: 7px; color: #eee; background: #222229; font: inherit; }
+.page-layout-panel .property-grid { gap: 7px; }
+.page-layout-panel .property-grid label { padding: 6px; }
