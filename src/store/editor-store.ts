@@ -32,6 +32,7 @@ interface EditorState {
   rotateNode: (id: string, rotation: number) => void;
   toggleNodeVisibility: (id: string) => void;
   toggleNodeLock: (id: string) => void;
+  moveLayer: (id: string, direction: "forward" | "backward") => void;
   deleteSelected: () => void;
   duplicateSelected: () => void;
   commitHistory: () => void;
@@ -175,6 +176,18 @@ export const useEditorStore = create<EditorState>((set) => ({
     ...pushHistory(state),
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, locked: !node.locked } : node)),
   })),
+  moveLayer: (id, direction) => set((state) => {
+    const nodes = currentNodes(state.project);
+    const index = nodes.findIndex((node) => node.id === id);
+    const target = direction === "forward" ? index + 1 : index - 1;
+    if (index < 0 || target < 0 || target >= nodes.length) return {};
+    const reordered = [...nodes];
+    [reordered[index], reordered[target]] = [reordered[target]!, reordered[index]!];
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, () => reordered),
+    };
+  }),
   rotateNode: (id, rotation) => set((state) => ({
     ...pushHistory(state),
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id
