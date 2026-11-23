@@ -137,6 +137,7 @@ export default function App() {
   const duplicateSelected = useEditorStore((state) => state.duplicateSelected);
   const deleteSelected = useEditorStore((state) => state.deleteSelected);
   const updateNodeLayout = useEditorStore((state) => state.updateNodeLayout);
+  const updateNodeStyle = useEditorStore((state) => state.updateNodeStyle);
   const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
   const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
   const nodes = project.pages[0]?.nodes ?? [];
@@ -277,6 +278,15 @@ export default function App() {
               </div>
               <span className="field-label">Rotation</span>
               <input className="rotation-input" type="number" value={selectedNode.layout.rotation} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { rotation: Number(event.target.value) })} />
+              <span className="field-label">Appearance</span>
+              <div className="style-grid">
+                <label><small>Text color</small><input type="color" value={selectedNode.style.color} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { color: event.target.value })} /></label>
+                <label><small>Background</small><input type="color" value={selectedNode.style.backgroundColor === "transparent" ? "#202027" : selectedNode.style.backgroundColor} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { backgroundColor: event.target.value })} /></label>
+                <label><small>Font size</small><input type="number" min="8" max="160" value={selectedNode.style.fontSize} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { fontSize: Math.max(8, Math.min(160, Number(event.target.value))) })} /></label>
+                <label><small>Corner radius</small><input type="number" min="0" max="200" value={selectedNode.style.borderRadius} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { borderRadius: Math.max(0, Math.min(200, Number(event.target.value))) })} /></label>
+                <label><small>Opacity</small><input type="range" min="0.1" max="1" step="0.05" value={selectedNode.style.opacity} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { opacity: Number(event.target.value) })} /></label>
+                <label><small>Alignment</small><select value={selectedNode.style.textAlign} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { textAlign: event.target.value as "left" | "center" | "right" })}><option value="left">Left</option><option value="center">Center</option><option value="right">Right</option></select></label>
+              </div>
               <div className="inspector-actions">
                 <button type="button" onClick={duplicateSelected}>Duplicate</button>
                 <button type="button" onClick={deleteSelected}>Delete</button>
