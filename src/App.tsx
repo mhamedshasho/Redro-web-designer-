@@ -123,6 +123,11 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
         opacity: node.style.opacity,
         background: node.style.backgroundColor,
         borderRadius: node.style.borderRadius,
+        display: node.type === "container" ? (node.layout.mode === "grid" ? "grid" : node.layout.mode === "free" ? "block" : "flex") : "flex",
+        flexDirection: node.type === "container" && node.layout.mode === "flex" ? "column" : undefined,
+        gridTemplateColumns: node.type === "container" && node.layout.mode === "grid" ? "repeat(2, minmax(0, 1fr))" : undefined,
+        gap: node.type === "container" ? 12 : undefined,
+        padding: node.type === "container" ? 12 : undefined,
         transform: `rotate(${node.layout.rotation}deg)`,
       }}
       onPointerDown={handlePointerDown}
@@ -142,7 +147,8 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
       aria-label={node.name}
       aria-pressed={selected}
     >
-      <span className="node-content">{node.text}</span>
+      {node.type !== "container" && <span className="node-content">{node.text}</span>}
+      {node.children.filter((child) => child.visible).map((child) => <CanvasNode key={child.id} node={child} zoom={zoom} layoutMode={node.layout.mode} />)}
       {selected && !node.locked && (
         <>
         <button
@@ -181,6 +187,9 @@ export default function App() {
   const alignSelected = useEditorStore((state) => state.alignSelected);
   const addText = useEditorStore((state) => state.addText);
   const addShape = useEditorStore((state) => state.addShape);
+  const addContainer = useEditorStore((state) => state.addContainer);
+  const groupSelected = useEditorStore((state) => state.groupSelected);
+  const ungroupSelected = useEditorStore((state) => state.ungroupSelected);
   const setZoom = useEditorStore((state) => state.setZoom);
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const undo = useEditorStore((state) => state.undo);
@@ -268,6 +277,7 @@ export default function App() {
           <button className="tool-button active" type="button" aria-label="Select tool">↖</button>
           <button className="tool-button" type="button" onClick={addText} aria-label="Add text">T</button>
           <button className="tool-button" type="button" onClick={addShape} aria-label="Add rectangle">▰</button>
+          <button className="tool-button" type="button" onClick={addContainer} aria-label="Add container">▣</button>
           <div className="rail-divider" />
           <button className="tool-button" type="button" onClick={undo} aria-label="Undo">↶</button>
           <button className="tool-button" type="button" onClick={redo} aria-label="Redo">↷</button>
@@ -335,6 +345,13 @@ export default function App() {
 
         <aside className="inspector">
           <div className="panel-heading">Properties & Layers</div>
+          <div className="page-layout-panel">
+            <div className="layers-heading">Grouping <span>{selectedNodeIds.length} selected</span></div>
+            <div className="inspector-actions">
+              <button type="button" disabled={selectedNodeIds.length < 2} onClick={groupSelected}>Group</button>
+              <button type="button" disabled={selectedNode?.type !== "container"} onClick={ungroupSelected}>Ungroup</button>
+            </div>
+          </div>
           <div className="page-layout-panel">
             <div className="layers-heading">Page layout <span>Root</span></div>
             <label><small>Layout mode</small><select value={pageLayout.mode} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updatePageLayout({ mode: event.target.value as "free" | "flex" | "grid" | "flow" })}><option value="free">Free positioning</option><option value="flex">Flexbox</option><option value="grid">CSS Grid</option><option value="flow">Flow</option></select></label>
