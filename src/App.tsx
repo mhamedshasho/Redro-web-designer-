@@ -190,6 +190,7 @@ export default function App() {
   const updateNodeStyle = useEditorStore((state) => state.updateNodeStyle);
   const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
   const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
+  const moveLayer = useEditorStore((state) => state.moveLayer);
   const nodes = project.pages[0]?.nodes ?? [];
   const selectedNode = nodes.find((node) => node.id === selectedNodeIds[0]);
 
@@ -373,6 +374,8 @@ export default function App() {
                 </button>
                 <button className="layer-action" type="button" aria-label={node.visible ? "Hide layer" : "Show layer"} onClick={() => toggleNodeVisibility(node.id)}>{node.visible ? "◉" : "○"}</button>
                 <button className={node.locked ? "layer-action locked" : "layer-action"} type="button" aria-label={node.locked ? "Unlock layer" : "Lock layer"} onClick={() => toggleNodeLock(node.id)}>{node.locked ? "▣" : "▢"}</button>
+                <button className="layer-action" type="button" aria-label="Bring layer forward" title="Bring forward" onClick={() => moveLayer(node.id, "forward")}>↑</button>
+                <button className="layer-action" type="button" aria-label="Send layer backward" title="Send backward" onClick={() => moveLayer(node.id, "backward")}>↓</button>
               </div>
             ))}
           </div>
