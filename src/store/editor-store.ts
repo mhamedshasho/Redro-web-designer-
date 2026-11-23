@@ -4,6 +4,7 @@ import {
   createTextNode,
   createShapeNode,
   createContainerNode,
+  createImageNode,
   type DocumentNode,
   type WebsiteProject,
   type PageLayout,
@@ -23,6 +24,7 @@ interface EditorState {
   addText: () => void;
   addShape: () => void;
   addContainer: () => void;
+  addImage: (src: string, name?: string) => void;
   groupSelected: () => void;
   moveSelectedIntoContainer: (containerId: string) => void;
   ungroupSelected: () => void;
@@ -258,6 +260,23 @@ export const useEditorStore = create<EditorState>((set) => ({
     const updated = parent
       ? appendToContainer(currentNodes(state.project), parent.id, node)
       : { nodes: [...currentNodes(state.project), node], inserted: true };
+    if (!updated.inserted) return {};
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, () => updated.nodes),
+      selectedNodeIds: [node.id],
+    };
+  }),
+  addImage: (src, name = "Image") => set((state) => {
+    if (!src.startsWith("data:image/")) return {};
+    const roots = currentNodes(state.project);
+    const parent = selectedContainer(state);
+    const offset = parent ? 24 + parent.children.length * 12 : 160 + roots.length * 14;
+    const node = createImageNode(src, offset, offset);
+    node.name = name.slice(0, 120) || "Image";
+    const updated = parent
+      ? appendToContainer(roots, parent.id, node)
+      : { nodes: [...roots, node], inserted: true };
     if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
