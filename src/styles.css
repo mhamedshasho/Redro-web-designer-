@@ -173,3 +173,12 @@ button { cursor: pointer; }
 
 .shape-visual { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .canvas-node:has(.shape-visual) { overflow: visible; }
+
+.button:not(.button-primary) { color: #e4e4e7; background: #292930; border: 1px solid #3a3a44; }
+.button:not(.button-primary):hover { color: #fff; border-color: #777783; background: #33333d; }
+.fatal-error { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px; background: #111114; color: #f4f4f5; text-align: center; }
+.fatal-error-mark { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--red); color: white; font-size: 30px; font-weight: 800; }
+.fatal-error h1 { margin: 22px 0 8px; font-size: 22px; }
+.fatal-error p { max-width: 520px; color: #a1a1aa; font-size: 13px; line-height: 1.7; }
+.fatal-error pre { max-width: min(720px, 100%); overflow: auto; padding: 12px; border: 1px solid #493137; border-radius: 7px; background: #21191d; color: #ffb7be; font: 12px/1.5 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
+.fatal-error button { margin-top: 12px; padding: 10px 16px; border: 0; border-radius: 6px; background: var(--red); color: #fff; font-weight: 700; }
