@@ -62,6 +62,12 @@ function updateFirstPage(project: WebsiteProject, update: (nodes: DocumentNode[]
   };
 }
 
+function removeNodeTree(nodes: DocumentNode[], ids: string[]): DocumentNode[] {
+  return nodes
+    .filter((node) => !ids.includes(node.id))
+    .map((node) => node.children.length ? { ...node, children: removeNodeTree(node.children, ids) } : node);
+}
+
 function mapNodeTree(nodes: DocumentNode[], id: string, update: (node: DocumentNode) => DocumentNode): DocumentNode[] {
   return nodes.map((node) => {
     if (node.id === id) return update(node);
@@ -265,7 +271,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     const ids = state.selectedNodeIds;
     return {
       ...pushHistory(state),
-      project: updateFirstPage(state.project, (nodes) => nodes.filter((node) => !ids.includes(node.id))),
+      project: updateFirstPage(state.project, (nodes) => removeNodeTree(nodes, ids)),
       selectedNodeIds: [],
     };
   }),
