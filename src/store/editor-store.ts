@@ -25,6 +25,7 @@ interface EditorState {
   addShape: () => void;
   addContainer: () => void;
   addImage: (src: string, name?: string) => void;
+  replaceImage: (id: string, src: string, name?: string) => void;
   groupSelected: () => void;
   moveSelectedIntoContainer: (containerId: string) => void;
   ungroupSelected: () => void;
@@ -282,6 +283,20 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...pushHistory(state),
       project: updateFirstPage(state.project, () => updated.nodes),
       selectedNodeIds: [node.id],
+    };
+  }),
+  replaceImage: (id, src, name) => set((state) => {
+    if (!src.startsWith("data:image/")) return {};
+    const target = findNodeTree(currentNodes(state.project), id);
+    if (!target || target.type !== "image" || target.locked) return {};
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({
+        ...node,
+        text: src,
+        name: name?.slice(0, 120) || node.name,
+      }))),
+      selectedNodeIds: [id],
     };
   }),
   addContainer: () => set((state) => {
