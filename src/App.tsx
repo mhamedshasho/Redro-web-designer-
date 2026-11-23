@@ -3,6 +3,15 @@ import { useEditorStore } from "./store/editor-store";
 import { saveProject } from "./storage/project-storage";
 import type { DocumentNode } from "./model/document";
 
+function findNodeById(nodes: DocumentNode[], id: string): DocumentNode | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    const nested = findNodeById(node.children, id);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
 function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow" }) {
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const selectNode = useEditorStore((state) => state.selectNode);
@@ -204,7 +213,7 @@ export default function App() {
   const updatePageLayout = useEditorStore((state) => state.updatePageLayout);
   const pageLayout = { mode: "free" as const, direction: "row" as const, gap: 16, padding: 24, columns: 3, justifyContent: "start" as const, alignItems: "start" as const, ...project.pages[0]?.layout };
   const nodes = project.pages[0]?.nodes ?? [];
-  const selectedNode = nodes.find((node) => node.id === selectedNodeIds[0]);
+  const selectedNode = selectedNodeIds[0] ? findNodeById(nodes, selectedNodeIds[0]) : undefined;
 
   useEffect(() => {
     void initialize();
