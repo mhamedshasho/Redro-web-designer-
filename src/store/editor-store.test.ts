@@ -108,6 +108,19 @@ describe("editor store", () => {
     expect(nodes[0]!.layout.x).toBe(nodes[1]!.layout.x);
   });
 
+  it("reorders layers without changing their identities", () => {
+    useEditorStore.getState().addText();
+    const first = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addShape();
+    const second = useEditorStore.getState().project.pages[0]!.nodes[1]!;
+    useEditorStore.getState().moveLayer(first.id, "forward");
+    const nodes = useEditorStore.getState().project.pages[0]!.nodes;
+    expect(nodes[1]!.id).toBe(first.id);
+    expect(nodes[0]!.id).toBe(second.id);
+    useEditorStore.getState().undo();
+    expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.id).toBe(first.id);
+  });
+
   it("does not move locked elements", () => {
     useEditorStore.getState().addText();
     const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
