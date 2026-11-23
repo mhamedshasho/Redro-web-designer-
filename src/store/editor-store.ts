@@ -155,15 +155,16 @@ function duplicateAsSibling(nodes: DocumentNode[], id: string, copies: DocumentN
 }
 
 
-function appendToContainer(nodes: DocumentNode[], containerId: string, child: DocumentNode): { nodes: DocumentNode[]; inserted: boolean } {
+function appendToContainer(nodes: DocumentNode[], containerId: string, child: DocumentNode, inheritedLocked = false): { nodes: DocumentNode[]; inserted: boolean } {
   let inserted = false;
   const next = nodes.map((node) => {
-    if (node.id === containerId && node.type === "container" && !node.locked) {
+    const effectivelyLocked = inheritedLocked || node.locked;
+    if (node.id === containerId && node.type === "container" && !effectivelyLocked) {
       inserted = true;
       return { ...node, children: [...node.children, child] };
     }
     if (!inserted && node.children.length) {
-      const nested = appendToContainer(node.children, containerId, child);
+      const nested = appendToContainer(node.children, containerId, child, effectivelyLocked);
       if (nested.inserted) {
         inserted = true;
         return { ...node, children: nested.nodes };
@@ -211,7 +212,7 @@ function hasLockedAncestor(nodes: DocumentNode[], id: string, inheritedLocked = 
 function selectedContainer(state: EditorState): DocumentNode | undefined {
   if (state.selectedNodeIds.length !== 1) return undefined;
   const node = findNodeTree(currentNodes(state.project), state.selectedNodeIds[0]!);
-  return node?.type === "container" && !node.locked ? node : undefined;
+  return node?.type === "container" ? node : undefined;
 }
 
 function pushHistory(state: EditorState): Partial<EditorState> {
