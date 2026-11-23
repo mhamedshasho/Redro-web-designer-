@@ -134,10 +134,12 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
         background: node.style.backgroundColor,
         borderRadius: node.style.borderRadius,
         display: node.type === "container" ? (node.layout.mode === "grid" ? "grid" : node.layout.mode === "free" ? "block" : "flex") : "flex",
-        flexDirection: node.type === "container" && node.layout.mode === "flex" ? "column" : undefined,
-        gridTemplateColumns: node.type === "container" && node.layout.mode === "grid" ? "repeat(2, minmax(0, 1fr))" : undefined,
-        gap: node.type === "container" ? 12 : undefined,
-        padding: node.type === "container" ? 12 : undefined,
+        flexDirection: node.type === "container" && node.layout.mode === "flex" ? (node.layout.direction ?? "column") : undefined,
+        gridTemplateColumns: node.type === "container" && node.layout.mode === "grid" ? `repeat(${node.layout.columns ?? 2}, minmax(0, 1fr))` : undefined,
+        gap: node.type === "container" ? (node.layout.gap ?? 12) : undefined,
+        padding: node.type === "container" ? (node.layout.padding ?? 12) : undefined,
+        justifyContent: node.type === "container" ? (node.layout.justifyContent === "start" ? "flex-start" : node.layout.justifyContent === "end" ? "flex-end" : node.layout.justifyContent ?? "flex-start") : undefined,
+        alignItems: node.type === "container" ? (node.layout.alignItems === "start" ? "flex-start" : node.layout.alignItems === "end" ? "flex-end" : node.layout.alignItems ?? "flex-start") : undefined,
         transform: `rotate(${node.layout.rotation}deg)`,
       }}
       onPointerDown={handlePointerDown}
@@ -413,6 +415,23 @@ export default function App() {
             <div className="inspector-content">
               <span className="field-label">Selected element</span>
               <div className="selected-type">{selectedNode.type.toUpperCase()}</div>
+              {selectedNode.type === "container" && <>
+                <span className="field-label">Container layout</span>
+                <label><small>Layout mode</small><select value={selectedNode.layout.mode} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { mode: event.target.value as "free" | "flex" | "grid" | "flow" })}><option value="free">Free positioning</option><option value="flex">Flexbox</option><option value="grid">CSS Grid</option><option value="flow">Flow</option></select></label>
+                {selectedNode.layout.mode !== "free" && <>
+                  <div className="property-grid">
+                    <label><small>Gap</small><input type="number" min="0" max="200" value={selectedNode.layout.gap ?? 12} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { gap: Math.max(0, Math.min(200, Number(event.target.value))) })} /></label>
+                    <label><small>Padding</small><input type="number" min="0" max="200" value={selectedNode.layout.padding ?? 12} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { padding: Math.max(0, Math.min(200, Number(event.target.value))) })} /></label>
+                  </div>
+                  {selectedNode.layout.mode === "flex" && <label><small>Direction</small><select value={selectedNode.layout.direction ?? "column"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { direction: event.target.value as "row" | "column" })}><option value="row">Horizontal</option><option value="column">Vertical</option></select></label>}
+                  {selectedNode.layout.mode === "grid" && <label><small>Columns</small><input type="number" min="1" max="12" value={selectedNode.layout.columns ?? 2} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { columns: Math.max(1, Math.min(12, Number(event.target.value))) })} /></label>}
+                  <div className="property-grid">
+                    <label><small>Justify</small><select value={selectedNode.layout.justifyContent ?? "start"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { justifyContent: event.target.value as "start" | "center" | "end" | "space-between" | "space-around" })}><option value="start">Start</option><option value="center">Center</option><option value="end">End</option><option value="space-between">Space between</option><option value="space-around">Space around</option></select></label>
+                    <label><small>Align items</small><select value={selectedNode.layout.alignItems ?? "start"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { alignItems: event.target.value as "start" | "center" | "end" | "stretch" })}><option value="start">Start</option><option value="center">Center</option><option value="end">End</option><option value="stretch">Stretch</option></select></label>
+                  </div>
+                </>}
+              </>}
+
               <span className="field-label">Content</span>
               <textarea
                 value={selectedNode.text}
