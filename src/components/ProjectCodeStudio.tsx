@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
-type ProjectFile = { path: string; content: string; kind: "html" | "css" | "js" | "asset" };
+export type ProjectFile = { path: string; content: string; kind: "html" | "css" | "js" | "asset" };
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -20,10 +20,10 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
     const pattern = new RegExp(`<script\\b(?=[^>]*src=["'](?:\\./)?(?:[^"']*/)?${escapeRegExp(name)}["'])[^>]*>\\s*</script>`, "gi");
     html = html.replace(pattern, "");
   }
-  const styleMarkup = styles.map((file) => `<style data-redro-file="${file.path}">\\n${file.content}\\n</style>`).join("\\n");
-  const scriptMarkup = scripts.map((file) => `<script data-redro-file="${file.path}">\\n${file.content}\\n</script>`).join("\\n");
-  if (styleMarkup) html = html.includes("</head>") ? html.replace("</head>", `${styleMarkup}\\n</head>`) : `${styleMarkup}\\n${html}`;
-  if (scriptMarkup) html = html.includes("</body>") ? html.replace("</body>", `${scriptMarkup}\\n</body>`) : `${html}\\n${scriptMarkup}`;
+  const styleMarkup = styles.map((file) => `<style data-redro-file="${file.path}">\n${file.content}\n</style>`).join("\n");
+  const scriptMarkup = scripts.map((file) => `<script data-redro-file="${file.path}">\n${file.content}\n</script>`).join("\n");
+  if (styleMarkup) html = html.includes("</head>") ? html.replace("</head>", `${styleMarkup}\n</head>`) : `${styleMarkup}\n${html}`;
+  if (scriptMarkup) html = html.includes("</body>") ? html.replace("</body>", `${scriptMarkup}\n</body>`) : `${html}\n${scriptMarkup}`;
   return html;
 }
 
