@@ -18,6 +18,7 @@ export interface NodeLayout {
   imageFit?: "contain" | "cover" | "fill";
   imagePositionX?: number;
   imagePositionY?: number;
+  shapeKind?: "rectangle" | "ellipse" | "triangle" | "diamond" | "pentagon" | "star" | "line" | "arrow";
 }
 
 export interface NodeStyle {
