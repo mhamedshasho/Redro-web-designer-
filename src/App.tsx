@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useEditorStore } from "./store/editor-store";
+import { saveProject } from "./storage/project-storage";
 import type { DocumentNode } from "./model/document";
 
 function CanvasNode({ node }: { node: DocumentNode }) {
@@ -37,6 +39,30 @@ function CanvasNode({ node }: { node: DocumentNode }) {
 
 export default function App() {
   const project = useEditorStore((state) => state.project);
+  const isReady = useEditorStore((state) => state.isReady);
+  const storageError = useEditorStore((state) => state.storageError);
+  const initialize = useEditorStore((state) => state.initialize);
+
+  useEffect(() => {
+    void initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (!isReady || storageError) return;
+    const timer = window.setTimeout(() => {
+      void saveProject(project).catch((error: unknown) => {
+        useEditorStore.setState({
+          storageError: error instanceof Error ? error.message : "Unable to save this project locally.",
+        });
+      });
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [project, isReady, storageError]);
+
+  if (!isReady) {
+    return <div className="startup-screen">REDRO <span>WEB DESIGNER</span><p>Opening your workspace…</p></div>;
+  }
   const zoom = useEditorStore((state) => state.zoom);
   const addText = useEditorStore((state) => state.addText);
   const setZoom = useEditorStore((state) => state.setZoom);
@@ -53,11 +79,12 @@ export default function App() {
         </a>
         <div className="project-name">{project.name}</div>
         <div className="topbar-actions">
-          <span className="save-state"><i /> Local workspace</span>
+          <span className={storageError ? "save-state save-error" : "save-state"}><i /> {storageError ? "Storage issue" : "Auto-save enabled"}</span>
           <button className="button button-primary" type="button">Publish</button>
         </div>
       </header>
 
+      {storageError && <div className="storage-warning" role="status">{storageError} · Changes may not be saved on this device.</div>}
       <div className="workspace">
         <aside className="tool-rail" aria-label="Tools">
           <button className="tool-button active" type="button" aria-label="Select tool">↖</button>
