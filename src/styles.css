@@ -105,3 +105,10 @@ button { cursor: pointer; }
 @media (max-width: 800px) {
   .history-controls { display: none; }
 }
+
+.style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.style-grid label { min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 7px; border: 1px solid #303039; border-radius: 6px; background: #222229; color: #898994; font-size: 10px; }
+.style-grid input, .style-grid select { width: 100%; min-width: 0; color: #eee; background: #17171b; border: 1px solid #35353f; border-radius: 4px; padding: 5px; font: inherit; }
+.style-grid input[type="color"] { height: 30px; padding: 2px; }
+.style-grid input[type="range"] { accent-color: var(--red); padding: 0; }
+.style-grid select { font-size: 11px; }
