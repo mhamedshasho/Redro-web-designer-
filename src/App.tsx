@@ -12,6 +12,13 @@ function findNodeById(nodes: DocumentNode[], id: string): DocumentNode | undefin
   return undefined;
 }
 
+function collectImageNodes(nodes: DocumentNode[]): DocumentNode[] {
+  return nodes.flatMap((node) => [
+    ...(node.type === "image" ? [node] : []),
+    ...collectImageNodes(node.children),
+  ]);
+}
+
 function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow"; inheritedLocked?: boolean }) {
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const selectNode = useEditorStore((state) => state.selectNode);
@@ -234,7 +241,10 @@ export default function App() {
   const addShape = useEditorStore((state) => state.addShape);
   const addContainer = useEditorStore((state) => state.addContainer);
   const addImage = useEditorStore((state) => state.addImage);
+  const replaceImage = useEditorStore((state) => state.replaceImage);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageActionRef = useRef<"add" | "replace">("add");
+  const replaceTargetRef = useRef<string | null>(null);
   const groupSelected = useEditorStore((state) => state.groupSelected);
   const moveSelectedIntoContainer = useEditorStore((state) => state.moveSelectedIntoContainer);
   const ungroupSelected = useEditorStore((state) => state.ungroupSelected);
@@ -254,6 +264,7 @@ export default function App() {
   const nodes = project.pages[0]?.nodes ?? [];
   const selectedNode = selectedNodeIds[0] ? findNodeById(nodes, selectedNodeIds[0]) : undefined;
   const selectedTargetContainer = selectedNodeIds.map((id) => findNodeById(nodes, id)).find((node) => node?.type === "container");
+  const imageAssets = collectImageNodes(nodes);
 
   useEffect(() => {
     void initialize();
@@ -315,7 +326,14 @@ export default function App() {
         if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) { window.alert("Choose a PNG, JPEG, WebP, or GIF image."); return; }
         if (file.size > 8 * 1024 * 1024) { window.alert("Image must be 8 MB or smaller."); return; }
         const reader = new FileReader();
-        reader.onload = () => { if (typeof reader.result === "string") addImage(reader.result, file.name.replace(/\.[^.]+$/, "")); };
+        reader.onload = () => {
+          if (typeof reader.result !== "string") return;
+          const assetName = file.name.replace(/\.[^.]+$/, "");
+          if (imageActionRef.current === "replace" && replaceTargetRef.current) replaceImage(replaceTargetRef.current, reader.result, assetName);
+          else addImage(reader.result, assetName);
+          imageActionRef.current = "add";
+          replaceTargetRef.current = null;
+        };
         reader.onerror = () => window.alert("Unable to read this image file.");
         reader.readAsDataURL(file);
       }} />
@@ -453,6 +471,9 @@ export default function App() {
               </>}
 
               {selectedNode.type === "image" ? <>
+                <span className="field-label">Image asset</span>
+                <button type="button" className="inspector-reset" onClick={() => { imageActionRef.current = "replace"; replaceTargetRef.current = selectedNode.id; imageInputRef.current?.click(); }}>Replace image</button>
+                <span className="asset-filename">{selectedNode.name}</span>
                 <span className="field-label">Image fit</span>
                 <select value={selectedNode.layout.imageFit ?? "contain"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { imageFit: event.target.value as "contain" | "cover" | "fill" })}><option value="contain">Contain</option><option value="cover">Cover / Crop</option><option value="fill">Stretch</option></select>
                 <span className="field-label">Crop position</span>
@@ -521,6 +542,18 @@ export default function App() {
               <p>Select an element on the canvas to edit its properties.</p>
             </div>
           )}
+          <div className="assets-panel">
+            <div className="layers-heading">Image assets <span>{imageAssets.length} total</span></div>
+            {imageAssets.length === 0 ? <p className="assets-empty">Images added to this page will appear here.</p> : imageAssets.map((asset) => (
+              <div className={`asset-row${selectedNodeIds.includes(asset.id) ? " selected" : ""}`} key={asset.id}>
+                <button type="button" className="asset-select" onClick={() => useEditorStore.getState().selectNode(asset.id)}>
+                  <img src={asset.text} alt="" />
+                  <span>{asset.name}</span>
+                </button>
+                <button type="button" className="asset-replace" title="Replace image" aria-label={`Replace ${asset.name}`} onClick={() => { imageActionRef.current = "replace"; replaceTargetRef.current = asset.id; imageInputRef.current?.click(); }}>↻</button>
+              </div>
+            ))}
+          </div>
           <div className="layers-panel">
             <div className="layers-heading">Layers <span>{nodes.reduce((total, node) => {
               const countTree = (item: DocumentNode): number => 1 + item.children.reduce((sum, child) => sum + countTree(child), 0);
