@@ -20,6 +20,8 @@ interface EditorState {
   setZoom: (zoom: number) => void;
 }
 
+let initializationPromise: Promise<void> | null = null;
+
 function currentNodes(project: WebsiteProject): DocumentNode[] {
   return project.pages[0]?.nodes ?? [];
 }
@@ -30,18 +32,25 @@ export const useEditorStore = create<EditorState>((set) => ({
   zoom: 1,
   isReady: false,
   storageError: null,
-  initialize: async () => {
-    try {
-      const projects = await listProjects();
-      const project = projects[0] ?? createProject();
-      if (projects.length === 0) await saveProject(project);
-      set({ project, isReady: true, storageError: null });
-    } catch (error) {
-      set({
-        isReady: true,
-        storageError: error instanceof Error ? error.message : "Local project storage is unavailable.",
-      });
-    }
+  initialize: () => {
+    if (initializationPromise) return initializationPromise;
+
+    initializationPromise = (async () => {
+      try {
+        const projects = await listProjects();
+        const project = projects[0] ?? createProject();
+        if (projects.length === 0) await saveProject(project);
+        set({ project, isReady: true, storageError: null });
+      } catch (error) {
+        initializationPromise = null;
+        set({
+          isReady: true,
+          storageError: error instanceof Error ? error.message : "Local project storage is unavailable.",
+        });
+      }
+    })();
+
+    return initializationPromise;
   },
   addText: () =>
     set((state) => {
