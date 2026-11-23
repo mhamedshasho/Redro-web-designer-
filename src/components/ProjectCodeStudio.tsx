@@ -26,7 +26,7 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
   const scriptMarkup = scripts.map((file) => `<script data-redro-file="${file.path}">\\n${file.content}\\n</script>`).join("\\n");
   const editorScript = `<script id="redro-visual-editor">
   (() => {
-    const originalMarkup = ${JSON.stringify(originalMarkup)};
+    const originalMarkup = ${JSON.stringify(originalMarkup).replace(/</g, "\\u003c")};
     let visualMode = false;
     let selectedId = "";
     const send = (type, payload) => parent.postMessage({ source: "redro-project-editor", type, payload }, "*");
@@ -55,7 +55,7 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
         const element = document.querySelector('[data-redro-editor-id="' + CSS.escape(selectedId) + '"]');
         if (!element) return;
         const { property, value } = data.payload;
-        if (property === "text") element.textContent = value;
+        if (property === "text" && element.children.length === 0) element.textContent = value;
         else if (["color", "backgroundColor", "fontSize", "width", "height"].includes(property)) element.style[property] = value;
         describe(element);
       }
