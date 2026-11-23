@@ -80,6 +80,18 @@ export function createTextNode(x = 80, y = 80): DocumentNode {
   };
 }
 
+export function createShapeNode(x = 120, y = 120): DocumentNode {
+  const node = createTextNode(x, y);
+  return {
+    ...node,
+    type: "shape",
+    name: "Rectangle",
+    text: "",
+    layout: { ...node.layout, width: 180, height: 110 },
+    style: { ...node.style, backgroundColor: "#ef3340", borderRadius: 8 },
+  };
+}
+
 export function createProject(name = "Untitled Website"): WebsiteProject {
   const now = new Date().toISOString();
 
