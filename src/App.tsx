@@ -19,7 +19,8 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
   const moveNodes = useEditorStore((state) => state.moveNodes);
   const resizeNode = useEditorStore((state) => state.resizeNode);
   const commitHistory = useEditorStore((state) => state.commitHistory);
-  const selected = selectedNodeIds.includes(node.id);\n  const effectiveLocked = inheritedLocked || node.locked;
+  const selected = selectedNodeIds.includes(node.id);
+  const effectiveLocked = inheritedLocked || node.locked;
   const dragRef = useRef<{ x: number; y: number; committed: boolean } | null>(null);
   const resizeRef = useRef<{ x: number; y: number; width: number; height: number } | null>(null);
   const rotateRef = useRef<{ centerX: number; centerY: number; startAngle: number; rotation: number } | null>(null);
@@ -89,7 +90,7 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
   const startRotate = (event: PointerEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (node.locked) return;
+    if (effectiveLocked) return;
     selectNode(node.id);
     commitHistory();
     const rect = event.currentTarget.parentElement!.getBoundingClientRect();
