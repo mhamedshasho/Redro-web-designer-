@@ -13,11 +13,11 @@ Redro Web Designer is a visual, no-code website authoring environment. Users cre
 - Clear separation between browser-only interactions and features requiring a backend or external provider.
 - Export real website files; hosting remains the user's choice.
 - Optional PWA output, not forced on every project.
-- Chrome and Firefox are the initial supported browsers.
+- Chrome and Firefox are the initial supported browsers. The editor workspace is desktop-only; phone-sized editor layouts are intentionally out of scope.
 
 ## Current status
 
-The repository now contains an early React/TypeScript editor foundation with local IndexedDB persistence, canvas element selection, rectangle and text insertion, pointer-based movement and resizing, direct rotation, multi-selection, layer visibility and locking, typography/color/appearance controls, inspector controls, and keyboard undo/redo.
+The repository now contains an early React/TypeScript editor foundation with local IndexedDB persistence, canvas element selection, rectangle and text insertion, pointer-based movement and resizing, direct rotation, multi-selection, layer visibility and locking, typography/color/appearance controls, 8px snap grid, multi-element alignment, inspector controls, and keyboard undo/redo. The editor is desktop-only.
 
 This is still an early editor prototype. Responsive breakpoint layouts, grouping, alignment guides, image assets, reusable components, multi-page editing, and production website export are not implemented yet. Build and test commands are defined, but must be run in a local development environment before this prototype is treated as verified.
 
