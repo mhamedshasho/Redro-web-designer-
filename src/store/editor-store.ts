@@ -127,6 +127,15 @@ function findNodeTree(nodes: DocumentNode[], id: string): DocumentNode | undefin
   return undefined;
 }
 
+function isEffectivelyLocked(nodes: DocumentNode[], id: string, inherited = false): boolean {
+  for (const node of nodes) {
+    const locked = inherited || node.locked;
+    if (node.id === id) return locked;
+    if (isEffectivelyLocked(node.children, id, locked)) return true;
+  }
+  return false;
+}
+
 function duplicateAsSibling(nodes: DocumentNode[], id: string, copies: DocumentNode[]): { nodes: DocumentNode[]; inserted: boolean } {
   const index = nodes.findIndex((node) => node.id === id);
   if (index >= 0) {
@@ -288,7 +297,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   replaceImage: (id, src, name) => set((state) => {
     if (!src.startsWith("data:image/")) return {};
     const target = findNodeTree(currentNodes(state.project), id);
-    if (!target || target.type !== "image" || target.locked) return {};
+    if (!target || target.type !== "image" || isEffectivelyLocked(currentNodes(state.project), id)) return {};
     return {
       ...pushHistory(state),
       project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({
