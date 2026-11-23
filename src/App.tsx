@@ -392,7 +392,8 @@ export default function App() {
             <div className="inspector-actions">
               <button type="button" disabled={selectedNodeIds.length < 2} onClick={groupSelected}>Group</button>
               <button type="button" disabled={selectedNode?.type !== "container"} onClick={ungroupSelected}>Ungroup</button>
-              <button type="button" disabled={!selectedTargetContainer || selectedNodeIds.length < 2} onClick={() => selectedTargetContainer && moveSelectedIntoContainer(selectedTargetContainer.id)}>Move into selected container</button>
+              <button type="button" disabled={!selectedTargetContainer || selectedNodeIds.length < 2 || pageLayout.mode !== "free"} onClick={() => selectedTargetContainer && moveSelectedIntoContainer(selectedTargetContainer.id)}>Move into selected container</button>
+              <small className="muted">Select source layers and a target container with Shift. Reparenting currently requires Free page positioning.</small>
             </div>
           </div>
           <div className="page-layout-panel">
