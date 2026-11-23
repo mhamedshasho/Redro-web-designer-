@@ -19,6 +19,17 @@ function collectImageNodes(nodes: DocumentNode[]): DocumentNode[] {
   ]);
 }
 
+const shapeClipPaths: Record<NonNullable<DocumentNode["layout"]["shapeKind"]>, string | undefined> = {
+  rectangle: undefined,
+  ellipse: undefined,
+  triangle: "polygon(50% 0%, 100% 100%, 0% 100%)",
+  diamond: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
+  pentagon: "polygon(50% 0%, 100% 38%, 81% 100%, 19% 100%, 0% 38%)",
+  star: "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 94%, 50% 72%, 21% 94%, 32% 57%, 2% 35%, 39% 35%)",
+  line: "polygon(0% 86%, 0% 74%, 100% 14%, 100% 26%)",
+  arrow: "polygon(0% 35%, 68% 35%, 68% 5%, 100% 50%, 68% 95%, 68% 65%, 0% 65%)",
+};
+
 function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node: DocumentNode; zoom: number; layoutMode: "free" | "flex" | "grid" | "flow"; inheritedLocked?: boolean }) {
   const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
   const selectNode = useEditorStore((state) => state.selectNode);
@@ -144,7 +155,8 @@ function CanvasNode({ node, zoom, layoutMode, inheritedLocked = false }: { node:
         textAlign: node.style.textAlign,
         opacity: node.style.opacity,
         background: node.style.backgroundColor,
-        borderRadius: node.style.borderRadius,
+        borderRadius: node.type === "shape" && node.layout.shapeKind === "ellipse" ? "50%" : node.style.borderRadius,
+        clipPath: node.type === "shape" ? shapeClipPaths[node.layout.shapeKind ?? "rectangle"] : undefined,
         display: node.type === "container" ? (node.layout.mode === "grid" ? "grid" : node.layout.mode === "free" ? "block" : "flex") : "flex",
         flexDirection: node.type === "container" && node.layout.mode === "flex" ? (node.layout.direction ?? "column") : undefined,
         gridTemplateColumns: node.type === "container" && node.layout.mode === "grid" ? `repeat(${node.layout.columns ?? 2}, minmax(0, 1fr))` : undefined,
@@ -470,6 +482,21 @@ export default function App() {
                 </>}
               </>}
 
+              {selectedNode.type === "shape" && <>
+                <span className="field-label">Shape type</span>
+                <select value={selectedNode.layout.shapeKind ?? "rectangle"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { shapeKind: event.target.value as NonNullable<DocumentNode["layout"]["shapeKind"]> })}>
+                  <option value="rectangle">Rectangle</option>
+                  <option value="ellipse">Ellipse / Circle</option>
+                  <option value="triangle">Triangle</option>
+                  <option value="diamond">Diamond</option>
+                  <option value="pentagon">Pentagon</option>
+                  <option value="star">Star</option>
+                  <option value="line">Line</option>
+                  <option value="arrow">Arrow</option>
+                </select>
+                <span className="field-label">Shape appearance</span>
+                <label><small>Corner radius</small><input type="number" min="0" max="200" value={selectedNode.style.borderRadius} disabled={selectedNode.layout.shapeKind === "ellipse"} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeStyle(selectedNode.id, { borderRadius: Math.max(0, Math.min(200, Number(event.target.value))) })} /></label>
+              </>}
               {selectedNode.type === "image" ? <>
                 <span className="field-label">Image asset</span>
                 <button type="button" className="inspector-reset" onClick={() => { imageActionRef.current = "replace"; replaceTargetRef.current = selectedNode.id; imageInputRef.current?.click(); }}>Replace image</button>
