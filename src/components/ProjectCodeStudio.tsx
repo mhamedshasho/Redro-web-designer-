@@ -60,7 +60,8 @@ function buildPreview(files: ProjectFile[], htmlPath: string): string {
         describe(element);
       }
     });
-    const marker = document.createElement("style");\n    marker.id = "redro-editor-marker";
+    const marker = document.createElement("style");
+    marker.id = "redro-editor-marker";
     marker.textContent = '[data-redro-editor-selected="true"]{outline:2px solid #ef3340!important;outline-offset:3px!important;cursor:crosshair!important}';
     document.head.appendChild(marker);
   })();
