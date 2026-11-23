@@ -21,6 +21,7 @@ interface EditorState {
   historyPast: WebsiteProject[];
   historyFuture: WebsiteProject[];
   initialize: () => Promise<void>;
+  importProject: (project: WebsiteProject) => void;
   addText: () => void;
   addShape: () => void;
   addContainer: () => void;
@@ -247,6 +248,12 @@ export const useEditorStore = create<EditorState>((set) => ({
     })();
     return initializationPromise;
   },
+  importProject: (project) => set((state) => ({
+    ...pushHistory(state),
+    project: { ...project, updatedAt: new Date().toISOString() },
+    selectedNodeIds: [],
+    storageError: null,
+  })),
   addText: () => set((state) => {
     const count = currentNodes(state.project).length;
     const parent = selectedContainer(state);
