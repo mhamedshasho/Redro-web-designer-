@@ -129,3 +129,21 @@ button { cursor: pointer; }
 .page-layout-panel input, .page-layout-panel select { width: 100%; min-width: 0; border: 1px solid #35353f; border-radius: 4px; padding: 7px; color: #eee; background: #222229; font: inherit; }
 .page-layout-panel .property-grid { gap: 7px; }
 .page-layout-panel .property-grid label { padding: 6px; }
+
+
+.layer-expand {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  color: #858590;
+  background: transparent;
+  font-size: 12px;
+}
+.layer-expand:not(:disabled):hover { color: #fff; background: #393943; }
+.layer-expand:disabled { cursor: default; opacity: .35; }
+.layer-tree-item { width: 100%; }
+.layer-children { border-left: 1px solid #34343d; margin-left: 12px; }
+.layer-row { min-width: 0; }
