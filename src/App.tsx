@@ -30,7 +30,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     (event.currentTarget as HTMLDivElement).dataset.dragIds = ids.join(",");
   };
 
-  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragRef.current) return;
     const dx = (event.clientX - dragRef.current.x) / zoom;
     const dy = (event.clientY - dragRef.current.y) / zoom;
@@ -43,7 +43,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     moveNodes(ids, dx, dy);
   };
 
-  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
     dragRef.current = null;
     delete (event.currentTarget as HTMLDivElement).dataset.dragIds;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
@@ -59,7 +59,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     event.currentTarget.setPointerCapture(event.pointerId);
   };
 
-  const resizeMove = (event: React.PointerEvent<HTMLButtonElement>) => {
+  const resizeMove = (event: PointerEvent<HTMLButtonElement>) => {
     if (!resizeRef.current) return;
     resizeNode(
       node.id,
@@ -68,7 +68,7 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
     );
   };
 
-  const finishResize = (event: React.PointerEvent<HTMLButtonElement>) => {
+  const finishResize = (event: PointerEvent<HTMLButtonElement>) => {
     resizeRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
@@ -97,7 +97,10 @@ function CanvasNode({ node, zoom }: { node: DocumentNode; zoom: number }) {
       onDoubleClick={() => {
         if (node.type !== "text" || node.locked) return;
         const nextText = window.prompt("Edit text", node.text);
-        if (nextText !== null) updateNodeText(node.id, nextText);
+        if (nextText !== null && nextText !== node.text) {
+          commitHistory();
+          updateNodeText(node.id, nextText);
+        }
       }}
       role="button"
       tabIndex={0}
@@ -261,18 +264,19 @@ export default function App() {
               <span className="field-label">Content</span>
               <textarea
                 value={selectedNode.text}
+                onFocus={() => useEditorStore.getState().commitHistory()}
                 onChange={(event) => useEditorStore.getState().updateNodeText(selectedNode.id, event.target.value)}
                 rows={3}
               />
               <span className="field-label">Position & Size</span>
               <div className="property-grid">
-                <label><small>X</small><input type="number" value={Math.round(selectedNode.layout.x)} onChange={(event) => updateNodeLayout(selectedNode.id, { x: Number(event.target.value) })} /></label>
-                <label><small>Y</small><input type="number" value={Math.round(selectedNode.layout.y)} onChange={(event) => updateNodeLayout(selectedNode.id, { y: Number(event.target.value) })} /></label>
-                <label><small>W</small><input type="number" min="24" value={Math.round(selectedNode.layout.width)} onChange={(event) => updateNodeLayout(selectedNode.id, { width: Number(event.target.value) })} /></label>
-                <label><small>H</small><input type="number" min="24" value={Math.round(selectedNode.layout.height)} onChange={(event) => updateNodeLayout(selectedNode.id, { height: Number(event.target.value) })} /></label>
+                <label><small>X</small><input type="number" value={Math.round(selectedNode.layout.x)} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { x: Number(event.target.value) })} /></label>
+                <label><small>Y</small><input type="number" value={Math.round(selectedNode.layout.y)} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { y: Number(event.target.value) })} /></label>
+                <label><small>W</small><input type="number" min="24" value={Math.round(selectedNode.layout.width)} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { width: Number(event.target.value) })} /></label>
+                <label><small>H</small><input type="number" min="24" value={Math.round(selectedNode.layout.height)} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { height: Number(event.target.value) })} /></label>
               </div>
               <span className="field-label">Rotation</span>
-              <input className="rotation-input" type="number" value={selectedNode.layout.rotation} onChange={(event) => updateNodeLayout(selectedNode.id, { rotation: Number(event.target.value) })} />
+              <input className="rotation-input" type="number" value={selectedNode.layout.rotation} onFocus={() => useEditorStore.getState().commitHistory()} onChange={(event) => updateNodeLayout(selectedNode.id, { rotation: Number(event.target.value) })} />
               <div className="inspector-actions">
                 <button type="button" onClick={duplicateSelected}>Duplicate</button>
                 <button type="button" onClick={deleteSelected}>Delete</button>
