@@ -121,6 +121,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, visible: !node.visible } : node)),
   })),
   toggleNodeLock: (id) => set((state) => ({
+    ...pushHistory(state),
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, locked: !node.locked } : node)),
   })),
   rotateNode: (id, rotation) => set((state) => ({
