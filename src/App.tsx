@@ -242,6 +242,9 @@ function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number
   const selected = selectedNodeIds.includes(node.id);
   const hasChildren = node.children.length > 0;
   const selectNode = useEditorStore((state) => state.selectNode);
+  const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
+  const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
+  const moveLayer = useEditorStore((state) => state.moveLayer);
 
   return (
     <div className="layer-tree-item">
@@ -291,9 +294,6 @@ export default function App() {
   const deleteSelected = useEditorStore((state) => state.deleteSelected);
   const updateNodeLayout = useEditorStore((state) => state.updateNodeLayout);
   const updateNodeStyle = useEditorStore((state) => state.updateNodeStyle);
-  const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
-  const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
-  const moveLayer = useEditorStore((state) => state.moveLayer);
   const updatePageLayout = useEditorStore((state) => state.updatePageLayout);
   const pageLayout = project.pages[0]!.layout;
   const nodes = project.pages[0]?.nodes ?? [];
