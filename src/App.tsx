@@ -1,4 +1,4 @@
-import { useEffect, useRef, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { useEditorStore } from "./store/editor-store";
 import { saveProject } from "./storage/project-storage";
 import type { DocumentNode } from "./model/document";
@@ -180,6 +180,34 @@ function CanvasNode({ node, zoom, layoutMode }: { node: DocumentNode; zoom: numb
         />
         </>
       )}
+    </div>
+  );
+}
+
+function LayerTreeItem({ node, depth = 0 }: { node: DocumentNode; depth?: number }) {
+  const [expanded, setExpanded] = useState(true);
+  const selectedNodeIds = useEditorStore((state) => state.selectedNodeIds);
+  const selected = selectedNodeIds.includes(node.id);
+  const hasChildren = node.children.length > 0;
+  const selectNode = useEditorStore((state) => state.selectNode);
+  const toggleNodeVisibility = useEditorStore((state) => state.toggleNodeVisibility);
+  const toggleNodeLock = useEditorStore((state) => state.toggleNodeLock);
+  const moveLayer = useEditorStore((state) => state.moveLayer);
+
+  return (
+    <div className="layer-tree-item">
+      <div className={selected ? "layer-row selected" : "layer-row"} style={{ paddingLeft: 4 + depth * 14 }}>
+        <button className="layer-expand" type="button" aria-label={expanded ? "Collapse children" : "Expand children"} disabled={!hasChildren} onClick={() => setExpanded((value) => !value)}>{hasChildren ? (expanded ? "▾" : "▸") : "·"}</button>
+        <button className="layer-select" type="button" onClick={() => selectNode(node.id)}>
+          <span>{node.type === "text" ? "T" : node.type === "container" ? "▣" : "◇"}</span>
+          <span className="layer-name">{node.name}</span>
+        </button>
+        <button className="layer-action" type="button" aria-label={node.visible ? "Hide layer" : "Show layer"} onClick={() => toggleNodeVisibility(node.id)}>{node.visible ? "◉" : "○"}</button>
+        <button className={node.locked ? "layer-action locked" : "layer-action"} type="button" aria-label={node.locked ? "Unlock layer" : "Lock layer"} onClick={() => toggleNodeLock(node.id)}>{node.locked ? "▣" : "▢"}</button>
+        <button className="layer-action" type="button" aria-label="Bring layer forward" onClick={() => moveLayer(node.id, "forward")}>↑</button>
+        <button className="layer-action" type="button" aria-label="Send layer backward" onClick={() => moveLayer(node.id, "backward")}>↓</button>
+      </div>
+      {hasChildren && expanded && <div className="layer-children">{node.children.map((child) => <LayerTreeItem key={child.id} node={child} depth={depth + 1} />)}</div>}
     </div>
   );
 }
@@ -419,19 +447,11 @@ export default function App() {
             </div>
           )}
           <div className="layers-panel">
-            <div className="layers-heading">Layers <span>{nodes.length}</span></div>
-            {[...nodes].reverse().map((node) => (
-              <div className={selectedNodeIds.includes(node.id) ? "layer-row selected" : "layer-row"} key={node.id}>
-                <button className="layer-select" type="button" onClick={() => useEditorStore.getState().selectNode(node.id)}>
-                  <span>{node.type === "text" ? "T" : "◇"}</span>
-                  <span className="layer-name">{node.name}</span>
-                </button>
-                <button className="layer-action" type="button" aria-label={node.visible ? "Hide layer" : "Show layer"} onClick={() => toggleNodeVisibility(node.id)}>{node.visible ? "◉" : "○"}</button>
-                <button className={node.locked ? "layer-action locked" : "layer-action"} type="button" aria-label={node.locked ? "Unlock layer" : "Lock layer"} onClick={() => toggleNodeLock(node.id)}>{node.locked ? "▣" : "▢"}</button>
-                <button className="layer-action" type="button" aria-label="Bring layer forward" title="Bring forward" onClick={() => moveLayer(node.id, "forward")}>↑</button>
-                <button className="layer-action" type="button" aria-label="Send layer backward" title="Send backward" onClick={() => moveLayer(node.id, "backward")}>↓</button>
-              </div>
-            ))}
+            <div className="layers-heading">Layers <span>{nodes.reduce((total, node) => {
+              const countTree = (item: DocumentNode): number => 1 + item.children.reduce((sum, child) => sum + countTree(child), 0);
+              return total + countTree(node);
+            }, 0)}</span></div>
+            {[...nodes].reverse().map((node) => <LayerTreeItem key={node.id} node={node} />)}
           </div>
         </aside>
       </div>
