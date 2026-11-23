@@ -407,7 +407,7 @@ export default function App() {
             anchor.href = url;
             anchor.download = fileName;
             anchor.click();
-            URL.revokeObjectURL(url);
+            window.setTimeout(() => URL.revokeObjectURL(url), 1500);
           }}>Export project</button>
         </div>
       </header>
