@@ -177,6 +177,15 @@ function isDescendant(nodes: DocumentNode[], ancestorId: string, candidateId: st
   return Boolean(ancestor && findNodeTree(ancestor.children, candidateId));
 }
 
+function ancestorsUseFreeLayout(nodes: DocumentNode[], id: string, parentIsFree = true): boolean | undefined {
+  for (const node of nodes) {
+    if (node.id === id) return parentIsFree;
+    const nested = ancestorsUseFreeLayout(node.children, id, parentIsFree && node.layout.mode === "free");
+    if (nested !== undefined) return nested;
+  }
+  return undefined;
+}
+
 function hasLockedAncestor(nodes: DocumentNode[], id: string, inheritedLocked = false): boolean {
   for (const node of nodes) {
     const locked = inheritedLocked || node.locked;
@@ -273,9 +282,9 @@ export const useEditorStore = create<EditorState>((set) => ({
   moveSelectedIntoContainer: (containerId) => set((state) => {
     const roots = currentNodes(state.project);
     const target = findNodeTree(roots, containerId);
-    if (!target || target.type !== "container" || hasLockedAncestor(roots, containerId)) return {};
+    if (!target || target.type !== "container" || hasLockedAncestor(roots, containerId) || state.project.pages[0]?.layout.mode !== "free" || ancestorsUseFreeLayout(roots, containerId) !== true) return {};
     const selected = state.selectedNodeIds.filter((id) => id !== containerId);
-    if (!selected.length || selected.some((id) => !findNodeTree(roots, id) || isDescendant(roots, id, containerId) || hasLockedAncestor(roots, id))) return {};
+    if (!selected.length || selected.some((id) => !findNodeTree(roots, id) || isDescendant(roots, id, containerId) || hasLockedAncestor(roots, id) || ancestorsUseFreeLayout(roots, id) !== true)) return {};
     const topLevelIds = selected.filter((id) => !selected.some((other) => other !== id && isDescendant(roots, other, id)));
     const targetOrigin = absoluteOrigin(roots, containerId);
     if (!targetOrigin) return {};
