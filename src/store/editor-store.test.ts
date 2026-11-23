@@ -23,6 +23,14 @@ describe("editor store", () => {
     expect(state.selectedNodeIds).toHaveLength(1);
   });
 
+  it("adds a rectangle shape to the document", () => {
+    useEditorStore.getState().addShape();
+    const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    expect(node.type).toBe("shape");
+    expect(node.name).toBe("Rectangle");
+    expect(node.style.backgroundColor).toBe("#ef3340");
+  });
+
   it("moves selected nodes and can undo and redo the movement", () => {
     useEditorStore.getState().addText();
     const node = useEditorStore.getState().project.pages[0]!.nodes[0]!;
