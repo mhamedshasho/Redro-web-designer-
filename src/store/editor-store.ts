@@ -97,11 +97,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     return { selectedNodeIds: exists ? state.selectedNodeIds.filter((item) => item !== id) : [...state.selectedNodeIds, id] };
   }),
   updateNodeText: (id, text) => set((state) => ({
-    ...pushHistory(state),
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, text } : node)),
   })),
   updateNodeLayout: (id, patch) => set((state) => ({
-    ...pushHistory(state),
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, layout: { ...node.layout, ...patch } } : node)),
   })),
   moveNodes: (ids, dx, dy) => set((state) => ({
