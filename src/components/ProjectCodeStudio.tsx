@@ -31,7 +31,6 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
   const [files, setFiles] = useState(initialFiles);
   const [activePath, setActivePath] = useState(initialFiles.find((file) => file.kind === "html")?.path ?? initialFiles[0]?.path ?? "");
   const [view, setView] = useState<"code" | "preview">("code");
-  const [notice, setNotice] = useState("");
   const activeFile = files.find((file) => file.path === activePath);
   const htmlPath = files.find((file) => file.kind === "html")?.path ?? activePath;
   const preview = useMemo(() => buildPreview(files, htmlPath), [files, htmlPath]);
@@ -84,7 +83,7 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
         </main>
       </div>
       <footer className="project-studio-footer">
-        <span>{notice || "Preview runs in an isolated frame. Changes are kept here until you download the edited files."}</span>
+        <span>{"Preview runs in an isolated frame. Changes are kept here until you download the edited files."}</span>
         <div>{files.filter((file) => file.kind !== "asset").map((file) => <button key={file.path} type="button" onClick={() => downloadFile(file)}>Save {file.path.split("/").pop()}</button>)}</div>
       </footer>
     </section>
