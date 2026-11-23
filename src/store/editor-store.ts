@@ -12,6 +12,7 @@ interface EditorState {
   project: WebsiteProject;
   selectedNodeIds: string[];
   zoom: number;
+  snapEnabled: boolean;
   isReady: boolean;
   storageError: string | null;
   historyPast: WebsiteProject[];
@@ -24,6 +25,9 @@ interface EditorState {
   updateNodeLayout: (id: string, patch: Partial<DocumentNode["layout"]>) => void;
   updateNodeStyle: (id: string, patch: Partial<DocumentNode["style"]>) => void;
   moveNodes: (ids: string[], dx: number, dy: number) => void;
+  setSnapEnabled: (enabled: boolean) => void;
+  snapSelectedToGrid: () => void;
+  alignSelected: (axis: "left" | "center-x" | "right" | "top" | "center-y" | "bottom") => void;
   resizeNode: (id: string, width: number, height: number) => void;
   rotateNode: (id: string, rotation: number) => void;
   toggleNodeVisibility: (id: string) => void;
@@ -62,6 +66,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   project: createProject(),
   selectedNodeIds: [],
   zoom: 1,
+  snapEnabled: true,
   isReady: false,
   storageError: null,
   historyPast: [],
@@ -122,6 +127,42 @@ export const useEditorStore = create<EditorState>((set) => ({
       ? { ...node, layout: { ...node.layout, x: Math.max(0, node.layout.x + dx), y: Math.max(0, node.layout.y + dy) } }
       : node)),
   })),
+  setSnapEnabled: (enabled) => set({ snapEnabled: enabled }),
+  snapSelectedToGrid: () => set((state) => {
+    const ids = state.selectedNodeIds;
+    if (!ids.length) return {};
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (nodes) => nodes.map((node) => ids.includes(node.id) && !node.locked
+        ? { ...node, layout: { ...node.layout, x: Math.round(node.layout.x / 8) * 8, y: Math.round(node.layout.y / 8) * 8 } }
+        : node)),
+    };
+  }),
+  alignSelected: (axis) => set((state) => {
+    const selected = currentNodes(state.project).filter((node) => state.selectedNodeIds.includes(node.id) && !node.locked);
+    if (selected.length < 2) return {};
+    const left = Math.min(...selected.map((node) => node.layout.x));
+    const top = Math.min(...selected.map((node) => node.layout.y));
+    const right = Math.max(...selected.map((node) => node.layout.x + node.layout.width));
+    const bottom = Math.max(...selected.map((node) => node.layout.y + node.layout.height));
+    const centerX = (left + right) / 2;
+    const centerY = (top + bottom) / 2;
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (nodes) => nodes.map((node) => {
+        if (!state.selectedNodeIds.includes(node.id) || node.locked) return node;
+        let x = node.layout.x;
+        let y = node.layout.y;
+        if (axis === "left") x = left;
+        if (axis === "center-x") x = centerX - node.layout.width / 2;
+        if (axis === "right") x = right - node.layout.width;
+        if (axis === "top") y = top;
+        if (axis === "center-y") y = centerY - node.layout.height / 2;
+        if (axis === "bottom") y = bottom - node.layout.height;
+        return { ...node, layout: { ...node.layout, x, y } };
+      })),
+    };
+  }),
   resizeNode: (id, width, height) => set((state) => ({
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id && !node.locked
       ? { ...node, layout: { ...node.layout, width: Math.max(24, width), height: Math.max(24, height) } }
