@@ -302,7 +302,16 @@ export default function App() {
           <div className="canvas-stage">
             <div
               className="website-canvas"
-              style={{ transform: `scale(${zoom})` }}
+              style={{
+                transform: `scale(${zoom})`,
+                display: pageLayout.mode === "free" ? "block" : pageLayout.mode === "grid" ? "grid" : "flex",
+                flexDirection: pageLayout.mode === "grid" ? undefined : pageLayout.direction,
+                gridTemplateColumns: pageLayout.mode === "grid" ? `repeat(${pageLayout.columns}, minmax(0, 1fr))` : undefined,
+                gap: pageLayout.mode === "free" ? 0 : pageLayout.gap,
+                padding: pageLayout.mode === "free" ? 0 : pageLayout.padding,
+                justifyContent: pageLayout.justifyContent === "start" ? "flex-start" : pageLayout.justifyContent === "end" ? "flex-end" : pageLayout.justifyContent,
+                alignItems: pageLayout.alignItems === "start" ? "flex-start" : pageLayout.alignItems === "end" ? "flex-end" : pageLayout.alignItems,
+              }}
               onPointerDown={(event) => {
                 if (event.target === event.currentTarget) useEditorStore.getState().selectNode(null);
               }}
@@ -314,7 +323,7 @@ export default function App() {
                   <p>Add an element and start designing visually.</p>
                   <button className="button button-primary" type="button" onClick={addText}>＋ Add your first text</button>
                 </div>
-              ) : nodes.filter((node) => node.visible).map((node) => <CanvasNode key={node.id} node={node} zoom={zoom} />)}
+              ) : nodes.filter((node) => node.visible).map((node) => <CanvasNode key={node.id} node={node} zoom={zoom} layoutMode={pageLayout.mode} />)}
             </div>
           </div>
 
