@@ -140,6 +140,32 @@ function duplicateAsSibling(nodes: DocumentNode[], id: string, copies: DocumentN
   return { nodes, inserted: false };
 }
 
+
+function appendToContainer(nodes: DocumentNode[], containerId: string, child: DocumentNode): { nodes: DocumentNode[]; inserted: boolean } {
+  let inserted = false;
+  const next = nodes.map((node) => {
+    if (node.id === containerId && node.type === "container" && !node.locked) {
+      inserted = true;
+      return { ...node, children: [...node.children, child] };
+    }
+    if (!inserted && node.children.length) {
+      const nested = appendToContainer(node.children, containerId, child);
+      if (nested.inserted) {
+        inserted = true;
+        return { ...node, children: nested.nodes };
+      }
+    }
+    return node;
+  });
+  return { nodes: next, inserted };
+}
+
+function selectedContainer(state: EditorState): DocumentNode | undefined {
+  if (state.selectedNodeIds.length !== 1) return undefined;
+  const node = findNodeTree(currentNodes(state.project), state.selectedNodeIds[0]!);
+  return node?.type === "container" && !node.locked ? node : undefined;
+}
+
 function pushHistory(state: EditorState): Partial<EditorState> {
   return {
     historyPast: [...state.historyPast, state.project].slice(-HISTORY_LIMIT),
@@ -176,27 +202,45 @@ export const useEditorStore = create<EditorState>((set) => ({
   },
   addText: () => set((state) => {
     const count = currentNodes(state.project).length;
-    const node = createTextNode(80 + count * 18, 80 + count * 18);
+    const parent = selectedContainer(state);
+    const offset = parent ? 24 + parent.children.length * 12 : 80 + count * 18;
+    const node = createTextNode(offset, offset);
+    const updated = parent
+      ? appendToContainer(currentNodes(state.project), parent.id, node)
+      : { nodes: [...currentNodes(state.project), node], inserted: true };
+    if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
-      project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
+      project: updateFirstPage(state.project, () => updated.nodes),
       selectedNodeIds: [node.id],
     };
   }),
   addShape: () => set((state) => {
     const count = currentNodes(state.project).length;
-    const node = createShapeNode(120 + count * 18, 120 + count * 18);
+    const parent = selectedContainer(state);
+    const offset = parent ? 24 + parent.children.length * 12 : 120 + count * 18;
+    const node = createShapeNode(offset, offset);
+    const updated = parent
+      ? appendToContainer(currentNodes(state.project), parent.id, node)
+      : { nodes: [...currentNodes(state.project), node], inserted: true };
+    if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
-      project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
+      project: updateFirstPage(state.project, () => updated.nodes),
       selectedNodeIds: [node.id],
     };
   }),
   addContainer: () => set((state) => {
+    const parent = selectedContainer(state);
     const node = createContainerNode();
+    if (parent) node.layout = { ...node.layout, x: 24 + parent.children.length * 12, y: 24 + parent.children.length * 12 };
+    const updated = parent
+      ? appendToContainer(currentNodes(state.project), parent.id, node)
+      : { nodes: [...currentNodes(state.project), node], inserted: true };
+    if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
-      project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
+      project: updateFirstPage(state.project, () => updated.nodes),
       selectedNodeIds: [node.id],
     };
   }),
