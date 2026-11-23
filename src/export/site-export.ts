@@ -1,4 +1,4 @@
-import type { DocumentNode, PageDocument, PageLayout, WebsiteProject } from "../model/document";
+import type { DocumentNode, NodeLayout, PageDocument, PageLayout, WebsiteProject } from "../model/document";
 
 const shapePaths: Record<NonNullable<DocumentNode["layout"]["shapeKind"]>, string | undefined> = {
   rectangle: undefined,
@@ -48,7 +48,7 @@ function alignment(value: string): string {
   return ["left", "center", "right"].includes(value) ? value : "left";
 }
 
-function layoutStyles(layout: PageLayout | DocumentNode["layout"], freePosition: boolean): string {
+function layoutStyles(layout: NodeLayout, freePosition: boolean): string {
   const mode = layout.mode;
   const position = freePosition ? "position:absolute;" : "position:relative;";
   const placement = freePosition
