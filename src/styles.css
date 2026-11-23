@@ -509,3 +509,39 @@ button { cursor: pointer; }
   .guide-steps { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .pages-bar { align-items:flex-start; }
 }
+
+.project-studio-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 22px; background: #08080bdc; }
+.project-studio { width: min(1500px, 100%); height: min(900px, 94vh); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #393943; border-radius: 12px; background: #111116; box-shadow: 0 24px 90px #000a; }
+.project-studio-header, .project-studio-footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 17px; background: #1b1b23; border-bottom: 1px solid #30303b; }
+.project-studio-header > div:first-child { display: flex; flex-direction: column; gap: 4px; }
+.project-studio-header strong { color: #fff; font-size: 12px; letter-spacing: 1px; }
+.project-studio-header strong span { color: #ef4450; }
+.project-studio-header small, .project-studio-footer > span { color: #9999a5; font-size: 10px; }
+.project-studio-actions, .project-studio-footer > div { display: flex; flex-wrap: wrap; gap: 7px; }
+.project-studio button { border: 1px solid #383843; border-radius: 6px; padding: 8px 11px; color: #d9d9e0; background: #25252e; font-size: 11px; }
+.project-studio button:hover, .project-studio button.active { color: white; border-color: #9d3b45; background: #38232a; }
+.project-studio-body { display: grid; grid-template-columns: 260px minmax(0, 1fr); flex: 1; min-height: 0; }
+.project-file-list { display: flex; flex-direction: column; gap: 5px; min-height: 0; overflow: auto; padding: 15px 10px; border-right: 1px solid #30303b; background: #18181f; }
+.project-file-list > strong { padding: 3px 7px 9px; color: #777783; font-size: 9px; letter-spacing: 1px; }
+.project-file-list button { display: flex; align-items: center; gap: 9px; min-width: 0; overflow: hidden; text-align: left; white-space: nowrap; text-overflow: ellipsis; border-color: transparent; background: transparent; }
+.project-file-list button span { flex: 0 0 22px; color: #ef6872; font-weight: 800; text-align: center; }
+.project-file-list button.selected { border-color: #62323a; background: #2a2026; color: white; }
+.project-file-list p { margin: auto 7px 0; color: #777783; font-size: 10px; line-height: 1.6; }
+.project-studio-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: #101014; }
+.project-editor-heading { display: flex; justify-content: space-between; align-items: center; min-height: 43px; padding: 6px 12px; border-bottom: 1px solid #30303b; color: #c6c6d0; font: 11px ui-monospace, monospace; }
+.project-code-editor { flex: 1; width: 100%; min-height: 0; resize: none; border: 0; outline: 0; padding: 20px; color: #e4e4ec; background: #101014; font: 13px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; white-space: pre; }
+.project-live-preview { flex: 1; width: 100%; min-height: 0; border: 0; background: white; }
+.project-asset-message { margin: auto; padding: 30px; color: #a1a1aa; text-align: center; font-size: 12px; }
+.project-studio-footer { border-top: 1px solid #30303b; border-bottom: 0; }
+.project-studio-footer > span { max-width: 50%; line-height: 1.5; }
+.project-studio-footer button { padding: 7px 9px; font-size: 10px; }
+@media (max-width: 700px) {
+  .project-studio-backdrop { padding: 0; }
+  .project-studio { width: 100%; height: 100%; border-radius: 0; }
+  .project-studio-body { grid-template-columns: 125px minmax(0, 1fr); }
+  .project-studio-header { align-items: flex-start; flex-direction: column; }
+  .project-studio-footer { align-items: flex-start; flex-direction: column; }
+  .project-studio-footer > span { max-width: 100%; }
+  .project-studio-actions { width: 100%; }
+  .project-studio-actions button { flex: 1; }
+}
