@@ -183,4 +183,37 @@ describe("editor store", () => {
     useEditorStore.getState().moveNodes([node.id], 100, 100);
     expect(useEditorStore.getState().project.pages[0]!.nodes[0]!.layout.x).toBe(node.layout.x);
   });
+
+  it("duplicates a container with fresh IDs for every nested node", () => {
+    useEditorStore.getState().addText();
+    const first = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addShape();
+    const second = useEditorStore.getState().project.pages[0]!.nodes[1]!;
+    useEditorStore.getState().selectNode(first.id);
+    useEditorStore.getState().selectNode(second.id, true);
+    useEditorStore.getState().groupSelected();
+    const originalGroup = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().duplicateSelected();
+    const roots = useEditorStore.getState().project.pages[0]!.nodes;
+    expect(roots).toHaveLength(2);
+    const copy = roots[1]!;
+    expect(copy.children).toHaveLength(2);
+    expect(copy.id).not.toBe(originalGroup.id);
+    expect(copy.children[0]!.id).not.toBe(originalGroup.children[0]!.id);
+    expect(copy.children[1]!.id).not.toBe(originalGroup.children[1]!.id);
+  });
+
+  it("reorders nested siblings without moving them out of their container", () => {
+    useEditorStore.getState().addText();
+    const first = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    useEditorStore.getState().addShape();
+    const second = useEditorStore.getState().project.pages[0]!.nodes[1]!;
+    useEditorStore.getState().selectNode(first.id);
+    useEditorStore.getState().selectNode(second.id, true);
+    useEditorStore.getState().groupSelected();
+    useEditorStore.getState().moveLayer(first.id, "forward");
+    const group = useEditorStore.getState().project.pages[0]!.nodes[0]!;
+    expect(group.children[1]!.id).toBe(first.id);
+    expect(group.children[0]!.id).toBe(second.id);
+  });
 });
