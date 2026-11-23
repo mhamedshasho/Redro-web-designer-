@@ -304,9 +304,9 @@ export default function App() {
               className="website-canvas"
               style={{
                 transform: `scale(${zoom})`,
-                display: pageLayout.mode === "free" ? "block" : pageLayout.mode === "grid" ? "grid" : "flex",
-                flexDirection: pageLayout.mode === "grid" ? undefined : pageLayout.direction,
-                gridTemplateColumns: pageLayout.mode === "grid" ? `repeat(${pageLayout.columns}, minmax(0, 1fr))` : undefined,
+                display: pageLayout.mode === "free" ? "block" : pageLayout.mode === "flex" ? "flex" : "grid",
+                flexDirection: pageLayout.mode === "flex" ? pageLayout.direction : undefined,
+                gridTemplateColumns: pageLayout.mode === "grid" ? `repeat(${pageLayout.columns}, minmax(0, 1fr))` : pageLayout.mode === "flow" ? "minmax(0, 1fr)" : undefined,
                 gap: pageLayout.mode === "free" ? 0 : pageLayout.gap,
                 padding: pageLayout.mode === "free" ? 0 : pageLayout.padding,
                 justifyContent: pageLayout.justifyContent === "start" ? "flex-start" : pageLayout.justifyContent === "end" ? "flex-end" : pageLayout.justifyContent,
