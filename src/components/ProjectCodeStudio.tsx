@@ -172,7 +172,7 @@ export default function ProjectCodeStudio({ initialFiles, onClose }: { initialFi
       </div>
       <footer className="project-studio-footer">
         <span>{view === "visual" ? "Visual selection is active. Switch to Preview to test links and page behavior." : "Your current Redro design project is kept separately from this imported project."}</span>
-        <div>{files.filter((file) => file.kind !== "asset").map((file) => <button key={file.path} type="button" onClick={() => downloadFile(file)}>Save {file.path.split("/").pop()}</button>)}</div>
+        <div>{files.map((file) => <button key={file.path} type="button" onClick={() => downloadFile(file)}>Save {file.path.split("/").pop()}</button>)}</div>
       </footer>
     </section>
   </div>;
