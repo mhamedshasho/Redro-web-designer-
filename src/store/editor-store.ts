@@ -62,6 +62,22 @@ function updateFirstPage(project: WebsiteProject, update: (nodes: DocumentNode[]
   };
 }
 
+function mapNodeTree(nodes: DocumentNode[], id: string, update: (node: DocumentNode) => DocumentNode): DocumentNode[] {
+  return nodes.map((node) => {
+    if (node.id === id) return update(node);
+    if (node.children.length) return { ...node, children: mapNodeTree(node.children, id, update) };
+    return node;
+  });
+}
+
+function mapManyNodeTree(nodes: DocumentNode[], ids: string[], update: (node: DocumentNode) => DocumentNode): DocumentNode[] {
+  return nodes.map((node) => {
+    if (ids.includes(node.id)) return update(node);
+    if (node.children.length) return { ...node, children: mapManyNodeTree(node.children, ids, update) };
+    return node;
+  });
+}
+
 function pushHistory(state: EditorState): Partial<EditorState> {
   return {
     historyPast: [...state.historyPast, state.project].slice(-HISTORY_LIMIT),
@@ -165,16 +181,16 @@ export const useEditorStore = create<EditorState>((set) => ({
     return { selectedNodeIds: exists ? state.selectedNodeIds.filter((item) => item !== id) : [...state.selectedNodeIds, id] };
   }),
   updateNodeText: (id, text) => set((state) => ({
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, text } : node)),
+    project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, text }))),
   })),
   updateNodeLayout: (id, patch) => set((state) => ({
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, layout: { ...node.layout, ...patch } } : node)),
+    project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, layout: { ...node.layout, ...patch } }))),
   })),
   updateNodeStyle: (id, patch) => set((state) => ({
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, style: { ...node.style, ...patch } } : node)),
+    project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, style: { ...node.style, ...patch } }))),
   })),
   moveNodes: (ids, dx, dy) => set((state) => ({
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => ids.includes(node.id) && !node.locked
+    project: updateFirstPage(state.project, (nodes) => mapManyNodeTree(nodes, ids, (node) => !node.locked
       ? { ...node, layout: { ...node.layout, x: Math.max(0, node.layout.x + dx), y: Math.max(0, node.layout.y + dy) } }
       : node)),
   })),
@@ -214,17 +230,17 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   resizeNode: (id, width, height) => set((state) => ({
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id && !node.locked
+    project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => !node.locked
       ? { ...node, layout: { ...node.layout, width: Math.max(24, width), height: Math.max(24, height) } }
       : node)),
   })),
   toggleNodeVisibility: (id) => set((state) => ({
     ...pushHistory(state),
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, visible: !node.visible } : node)),
+    project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, visible: !node.visible }))),
   })),
   toggleNodeLock: (id) => set((state) => ({
     ...pushHistory(state),
-    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, locked: !node.locked } : node)),
+    project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, locked: !node.locked }))),
   })),
   moveLayer: (id, direction) => set((state) => {
     const nodes = currentNodes(state.project);
