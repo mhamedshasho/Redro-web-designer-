@@ -23,6 +23,8 @@ interface EditorState {
   moveNodes: (ids: string[], dx: number, dy: number) => void;
   resizeNode: (id: string, width: number, height: number) => void;
   rotateNode: (id: string, rotation: number) => void;
+  toggleNodeVisibility: (id: string) => void;
+  toggleNodeLock: (id: string) => void;
   deleteSelected: () => void;
   duplicateSelected: () => void;
   commitHistory: () => void;
@@ -111,6 +113,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id && !node.locked
       ? { ...node, layout: { ...node.layout, width: Math.max(24, width), height: Math.max(24, height) } }
       : node)),
+  })),
+  toggleNodeVisibility: (id) => set((state) => ({
+    ...pushHistory(state),
+    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, visible: !node.visible } : node)),
+  })),
+  toggleNodeLock: (id) => set((state) => ({
+    project: updateFirstPage(state.project, (nodes) => nodes.map((node) => node.id === id ? { ...node, locked: !node.locked } : node)),
   })),
   rotateNode: (id, rotation) => set((state) => ({
     ...pushHistory(state),
