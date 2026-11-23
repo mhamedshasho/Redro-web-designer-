@@ -2,6 +2,7 @@ import { create } from "zustand";
 import {
   createProject,
   createTextNode,
+  createShapeNode,
   type DocumentNode,
   type WebsiteProject,
 } from "../model/document";
@@ -17,6 +18,7 @@ interface EditorState {
   historyFuture: WebsiteProject[];
   initialize: () => Promise<void>;
   addText: () => void;
+  addShape: () => void;
   selectNode: (id: string | null, additive?: boolean) => void;
   updateNodeText: (id: string, text: string) => void;
   updateNodeLayout: (id: string, patch: Partial<DocumentNode["layout"]>) => void;
@@ -85,6 +87,15 @@ export const useEditorStore = create<EditorState>((set) => ({
   addText: () => set((state) => {
     const count = currentNodes(state.project).length;
     const node = createTextNode(80 + count * 18, 80 + count * 18);
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
+      selectedNodeIds: [node.id],
+    };
+  }),
+  addShape: () => set((state) => {
+    const count = currentNodes(state.project).length;
+    const node = createShapeNode(120 + count * 18, 120 + count * 18);
     return {
       ...pushHistory(state),
       project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
