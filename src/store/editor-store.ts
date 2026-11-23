@@ -276,7 +276,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   renamePage: (id, name) => set((state) => {
     const clean = name.trim().slice(0, 48);
     if (!clean || !state.project.pages.some((page) => page.id === id)) return {};
-    return { ...pushHistory(state), project: { ...state.project, updatedAt: new Date().toISOString(), pages: state.project.pages.map((page) => page.id === id ? { ...page, name: clean, title: clean } : page) };
+    return { ...pushHistory(state), project: { ...state.project, updatedAt: new Date().toISOString(), pages: state.project.pages.map((page) => page.id === id ? { ...page, name: clean, title: clean } : page) } };
   }),
   duplicatePage: (id) => set((state) => {
     const source = state.project.pages.find((page) => page.id === id);
@@ -292,13 +292,13 @@ export const useEditorStore = create<EditorState>((set) => ({
     return { ...pushHistory(state), project: { ...state.project, updatedAt: new Date().toISOString(), pages }, activePageId: state.activePageId === id ? pages[0]!.id : state.activePageId, selectedNodeIds: [] };
   }),
   addText: () => set((state) => {
-    const count = currentNodes(state.project).length;
+    const count = currentNodes(state.project, state.activePageId).length;
     const parent = selectedContainer(state);
     const offset = parent ? 24 + parent.children.length * 12 : 80 + count * 18;
     const node = createTextNode(offset, offset);
     const updated = parent
-      ? appendToContainer(currentNodes(state.project), parent.id, node)
-      : { nodes: [...currentNodes(state.project), node], inserted: true };
+      ? appendToContainer(currentNodes(state.project, state.activePageId), parent.id, node)
+      : { nodes: [...currentNodes(state.project, state.activePageId), node], inserted: true };
     if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
@@ -307,13 +307,13 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   addShape: () => set((state) => {
-    const count = currentNodes(state.project).length;
+    const count = currentNodes(state.project, state.activePageId).length;
     const parent = selectedContainer(state);
     const offset = parent ? 24 + parent.children.length * 12 : 120 + count * 18;
     const node = createShapeNode(offset, offset);
     const updated = parent
-      ? appendToContainer(currentNodes(state.project), parent.id, node)
-      : { nodes: [...currentNodes(state.project), node], inserted: true };
+      ? appendToContainer(currentNodes(state.project, state.activePageId), parent.id, node)
+      : { nodes: [...currentNodes(state.project, state.activePageId), node], inserted: true };
     if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
@@ -323,7 +323,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
   addImage: (src, name = "Image") => set((state) => {
     if (!src.startsWith("data:image/")) return {};
-    const roots = currentNodes(state.project);
+    const roots = currentNodes(state.project, state.activePageId);
     const parent = selectedContainer(state);
     const offset = parent ? 24 + parent.children.length * 12 : 160 + roots.length * 14;
     const node = createImageNode(src, offset, offset);
@@ -340,8 +340,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   }),
   replaceImage: (id, src, name) => set((state) => {
     if (!src.startsWith("data:image/")) return {};
-    const target = findNodeTree(currentNodes(state.project), id);
-    if (!target || target.type !== "image" || isEffectivelyLocked(currentNodes(state.project), id)) return {};
+    const target = findNodeTree(currentNodes(state.project, state.activePageId), id);
+    if (!target || target.type !== "image" || isEffectivelyLocked(currentNodes(state.project, state.activePageId), id)) return {};
     return {
       ...pushHistory(state),
       project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({
@@ -357,8 +357,8 @@ export const useEditorStore = create<EditorState>((set) => ({
     const node = createContainerNode();
     if (parent) node.layout = { ...node.layout, x: 24 + parent.children.length * 12, y: 24 + parent.children.length * 12 };
     const updated = parent
-      ? appendToContainer(currentNodes(state.project), parent.id, node)
-      : { nodes: [...currentNodes(state.project), node], inserted: true };
+      ? appendToContainer(currentNodes(state.project, state.activePageId), parent.id, node)
+      : { nodes: [...currentNodes(state.project, state.activePageId), node], inserted: true };
     if (!updated.inserted) return {};
     return {
       ...pushHistory(state),
@@ -367,7 +367,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   moveSelectedIntoContainer: (containerId) => set((state) => {
-    const roots = currentNodes(state.project);
+    const roots = currentNodes(state.project, state.activePageId);
     const target = findNodeTree(roots, containerId);
     if (!target || target.type !== "container" || hasLockedAncestor(roots, containerId) || currentPage(state.project, state.activePageId)?.layout.mode !== "free" || ancestorsUseFreeLayout(roots, containerId) !== true) return {};
     const selected = state.selectedNodeIds.filter((id) => id !== containerId);
@@ -396,7 +396,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   groupSelected: () => set((state) => {
-    const nodes = currentNodes(state.project);
+    const nodes = currentNodes(state.project, state.activePageId);
     const selected = nodes.filter((node) => state.selectedNodeIds.includes(node.id));
     if (selected.length < 2 || selected.some((node) => node.type === "container" && node.children.length)) return {};
     const left = Math.min(...selected.map((node) => node.layout.x));
@@ -418,7 +418,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   ungroupSelected: () => set((state) => {
-    const nodes = currentNodes(state.project);
+    const nodes = currentNodes(state.project, state.activePageId);
     const container = nodes.find((node) => state.selectedNodeIds.includes(node.id) && node.type === "container");
     if (!container || container.children.length === 0) return {};
     const restored = container.children.map((child) => ({
@@ -462,7 +462,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   alignSelected: (axis) => set((state) => {
-    const selected = currentNodes(state.project).filter((node) => state.selectedNodeIds.includes(node.id) && !node.locked);
+    const selected = currentNodes(state.project, state.activePageId).filter((node) => state.selectedNodeIds.includes(node.id) && !node.locked);
     if (selected.length < 2) return {};
     const left = Math.min(...selected.map((node) => node.layout.x));
     const top = Math.min(...selected.map((node) => node.layout.y));
@@ -500,7 +500,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     project: updateFirstPage(state.project, (nodes) => mapNodeTree(nodes, id, (node) => ({ ...node, locked: !node.locked })), state.activePageId),
   })),
   moveLayer: (id, direction) => set((state) => {
-    const reordered = reorderNodeTree(currentNodes(state.project), id, direction);
+    const reordered = reorderNodeTree(currentNodes(state.project, state.activePageId), id, direction);
     if (!reordered.changed) return {};
     return {
       ...pushHistory(state),
@@ -523,7 +523,7 @@ export const useEditorStore = create<EditorState>((set) => ({
     };
   }),
   duplicateSelected: () => set((state) => {
-    const roots = currentNodes(state.project);
+    const roots = currentNodes(state.project, state.activePageId);
     const selected = state.selectedNodeIds.map((id) => findNodeTree(roots, id)).filter((node): node is DocumentNode => Boolean(node));
     if (!selected.length) return {};
     let nextNodes = roots;
