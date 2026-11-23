@@ -3,6 +3,7 @@ import {
   createProject,
   createTextNode,
   createShapeNode,
+  createContainerNode,
   type DocumentNode,
   type WebsiteProject,
   type PageLayout,
@@ -21,6 +22,9 @@ interface EditorState {
   initialize: () => Promise<void>;
   addText: () => void;
   addShape: () => void;
+  addContainer: () => void;
+  groupSelected: () => void;
+  ungroupSelected: () => void;
   selectNode: (id: string | null, additive?: boolean) => void;
   updateNodeText: (id: string, text: string) => void;
   updateNodeLayout: (id: string, patch: Partial<DocumentNode["layout"]>) => void;
@@ -108,6 +112,50 @@ export const useEditorStore = create<EditorState>((set) => ({
       ...pushHistory(state),
       project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
       selectedNodeIds: [node.id],
+    };
+  }),
+  addContainer: () => set((state) => {
+    const node = createContainerNode();
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (nodes) => [...nodes, node]),
+      selectedNodeIds: [node.id],
+    };
+  }),
+  groupSelected: () => set((state) => {
+    const nodes = currentNodes(state.project);
+    const selected = nodes.filter((node) => state.selectedNodeIds.includes(node.id));
+    if (selected.length < 2 || selected.some((node) => node.type === "container" && node.children.length)) return {};
+    const left = Math.min(...selected.map((node) => node.layout.x));
+    const top = Math.min(...selected.map((node) => node.layout.y));
+    const right = Math.max(...selected.map((node) => node.layout.x + node.layout.width));
+    const bottom = Math.max(...selected.map((node) => node.layout.y + node.layout.height));
+    const container = createContainerNode();
+    container.name = "Group";
+    container.layout = { ...container.layout, x: left, y: top, width: Math.max(80, right - left), height: Math.max(60, bottom - top) };
+    container.children = selected.map((node) => ({
+      ...node,
+      layout: { ...node.layout, x: node.layout.x - left, y: node.layout.y - top },
+    }));
+    const selectedIds = new Set(selected.map((node) => node.id));
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (items) => [...items.filter((node) => !selectedIds.has(node.id)), container]),
+      selectedNodeIds: [container.id],
+    };
+  }),
+  ungroupSelected: () => set((state) => {
+    const nodes = currentNodes(state.project);
+    const container = nodes.find((node) => state.selectedNodeIds.includes(node.id) && node.type === "container");
+    if (!container || container.children.length === 0) return {};
+    const restored = container.children.map((child) => ({
+      ...child,
+      layout: { ...child.layout, x: child.layout.x + container.layout.x, y: child.layout.y + container.layout.y },
+    }));
+    return {
+      ...pushHistory(state),
+      project: updateFirstPage(state.project, (items) => [...items.filter((node) => node.id !== container.id), ...restored]),
+      selectedNodeIds: restored.map((node) => node.id),
     };
   }),
   selectNode: (id, additive = false) => set((state) => {
